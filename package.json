@@ -1,0 +1,59 @@
+{
+  "name": "dolistify",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "next": "14.2.13",
+    "pg": "^8.13.1",
+    "pg-native": "^3.2.0",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8.4.47",
+    "typescript": "^5"
+  },
+  "description": "A Task Management App",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dinero203/Dolistify.git"
+  },
+  "keywords": [
+    "task",
+    "todo",
+    "todolist",
+    "task",
+    "management",
+    "scheduling",
+    "notepad",
+    "planner",
+    "notes",
+    "workflow",
+    "list",
+    "remainder",
+    "project",
+    "management",
+    "organiser",
+    "app",
+    "free",
+    "app"
+  ],
+  "author": "Dinero",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dinero203/Dolistify/issues"
+  },
+  "homepage": "https://github.com/dinero203/Dolistify#readme"
+}

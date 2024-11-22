@@ -1,0 +1,149 @@
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  font-weight: light;
+  justify-items: space-between;
+  font-size: 1rem;
+  font-weight: light;
+  text-shadow: 1px 1px #00040a;
+  transition: 0.5s;
+  cursor: pointer;
+}
+
+.container:hover {
+  background-color: rgba(7, 149, 66, 0.35);
+  transition: 0.5s;
+}
+
+.bar {
+  height: 20px;
+  width: 5px;
+  margin-right: 10px;
+}
+
+.text {
+  color: inherit;
+  flex: 1;
+}
+
+.icon { 
+  padding: 5px;
+  height: fit-content;
+  width: fit-content;
+}
+
+.icon_success {
+  padding: 5px;
+  height: fit-content;
+  width: fit-content;
+  animation: successZoomInOut 2s infinite;
+}
+
+.icon_message {
+  animation: messageRotate 1.5s ease-in-out infinite;
+  animation-delay: 5s;
+  padding: 5px;
+  height: fit-content;
+  width: fit-content;
+}
+
+.icon_warning {
+  animation: warningBlink 2s infinite both;
+  padding: 5px;
+  height: fit-content;
+  width: fit-content;
+}
+.icon_error {
+  padding: 5px;
+  height: fit-content;
+  width: fit-content;
+  animation: errorZoomInOut 2s infinite;
+}
+.icon_alert {
+  padding: 5px;
+  height: fit-content;
+  width: fit-content;
+  animation: alertJump 1.5s ease-out 5s infinite;
+}
+
+@keyframes errorZoomInOut {
+  0% {
+    transform: scale(1); /* Original size */
+  }
+  50% {
+    transform: scale(1.1); /* Zoom in */
+  }
+  100% {
+    transform: scale(1); /* Original size */
+  }
+}
+
+@keyframes successZoomInOut {
+  0% {
+    transform: scale(1); /* Original size */
+  }
+  25% {
+    transform: scale(1.1); /* Zoom in */
+  }
+  75% {
+    transform: scale(0.8); /* Zoom in */
+  }
+  100% {
+    transform: scale(1); /* Original size */
+  }
+}
+
+@keyframes messageRotate {
+  0% {
+    transform: rotate(0deg); /* Start position */
+  }
+  25% {
+    transform: rotate(30deg); /* Slight clockwise */
+  }
+  50% {
+    transform: rotate(-30deg); /* Slight counterclockwise */
+  }
+  75% {
+    transform: rotate(0deg); /* Return to start */
+  }
+  100% {
+    transform: rotate(0deg); /* End position */
+  }
+}
+
+@keyframes warningBlink {
+  0%,
+  50%,
+  100% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0;
+  }
+}
+
+@keyframes alertJump {
+  0% {
+    transform: translateY(0); /* Start position */
+  }
+  20% {
+    transform: translateY(-15px); /* First jump up */
+  }
+  40% {
+    transform: translateY(0); /* Fall back down */
+  }
+  60% {
+    transform: translateY(-15px); /* Second jump up */
+  }
+  80% {
+    transform: translateY(0); /* Fall back down */
+  }
+  100% {
+    transform: translateY(0); /* Land */
+  }
+}

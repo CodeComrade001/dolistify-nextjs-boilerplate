@@ -1,0 +1,61 @@
+/* styles/pieChartStyles.module.css */
+
+.pieChart_view {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-image: conic-gradient(
+    green 0%,
+    green 27.78%,
+    red 27.78%,
+    red 41.67%,
+    #ffa500 41.67%,
+    #ffa500 55.56%,
+    #001f54 55.56%,
+    #001f54 100%
+  );
+
+  border-radius: 50%;
+}
+
+.pieChart_center {
+  width: 70%;
+  height: 70%;
+  background-color: #fff;
+  border-radius: 50%;
+}
+
+.tagsCount {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.tags {
+  font-weight: bolder;
+  display: flex;
+  gap: 5px;
+  color: black;
+  flex: 1;
+}
+
+.tagsLabel {
+  font-size: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex: 1;
+}
+
+.values {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: bolder;
+  display: flex;
+}

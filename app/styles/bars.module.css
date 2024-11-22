@@ -1,0 +1,35 @@
+.bar_container {
+   flex: 1;
+   display: flex;
+   flex-direction: row;
+   align-items: last baseline;
+   gap: 5px;
+   justify-content: center;
+   padding-top: 5px;
+   padding-bottom: 5px;
+ }
+ 
+ .active_bar {
+   /* flex:1; */
+   width:20%;
+   background-color: yellow;
+   border-radius: 5px;
+   position: relative;
+ }
+ 
+ .completed_bar {
+   width:20%;
+   position: relative;
+   /* flex: 1; */
+   background-color: green;
+   border-radius: 5px;
+ }
+ 
+ .missed_bar {
+   width:20%;
+   position: relative;
+   /* flex: 1; */
+   background-color: red;
+   border-radius: 5px;
+ }
+ 

@@ -1,0 +1,159 @@
+.taskView_items {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.send {
+  background-color: #98ff98;
+  height: fit-content;
+  width: fit-content;
+  padding: 5px 10px;
+  font-weight: bolder;
+  border-radius: 10px;
+  position: absolute;
+  font-size: 1rem;
+  z-index: 1;
+  left: 90%;
+  top: 90%;
+  border: none;
+}
+
+.taskHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding:5px 0px;
+}
+
+.taskSelector {
+  flex: 1;
+  font-size: 1rem;
+  height: fit-content;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: bold;
+  /* padding: 5px 10px; */
+  display: none;
+}
+
+.taskDropdown {
+  font-weight: bolder;
+  font-size: 1rem;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background-color: #98ff98;
+  border: none;
+}
+
+.option {
+  font-size: 1rem;
+  font-weight: bolder;
+}
+
+.taskOptions {
+  width: fit-content;
+  height: fit-content;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.taskOptions_items {
+  height: fit-content;
+  width: fit-content;
+  padding: 5px 10px;
+  border: none;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 9px;
+  background-color: #98ff98;
+}
+
+.task_title_input {
+  font-size: 1.1rem;
+  height: 25px;
+  transition: border-color 0.3s ease;
+  margin: 0;
+}
+
+.grid_section {
+  height: auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task_table {
+  width: 100%;
+  height:auto;
+}
+
+.table_body {
+  background-color: #fff;
+}
+
+.content {
+  height: 50px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.3s;
+}
+
+.content:hover {
+  background-color: #f1f1f1;
+}
+
+.mark {
+  width: fit-content;
+  height: fit-content;
+  text-align: center;
+  font-weight: bolder;
+  color: #5f6368;
+}
+
+.user_text {
+  padding: 0px 8px;
+  color: #333;
+  word-wrap: break-word;
+}
+
+.user_input {
+  font-size: 1.1rem;
+  height: 100%;
+  width: 100%;
+  transition: border-color 0.3s ease;
+  border: none;
+  margin: 0;
+}
+
+.user_input:focus {
+  font-size: 1.1rem;
+  outline: none;
+}
+
+.user_delete,
+.user_complete {
+  width: 40px;
+  height: fit-content;
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #888;
+  transition: color 0.3s;
+}
+
+.user_delete:hover {
+  color: #ff5c5c;
+}
+
+.user_complete:hover {
+  color: #4caf50;
+}
