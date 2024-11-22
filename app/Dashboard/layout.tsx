@@ -46,7 +46,7 @@ export default function DashboardLayout({
    }
 
    function showSavedTaskView(taskId: number) {
-      setEditingTaskId(taskId); 
+      setEditingTaskId(taskId); // Update the TaskId
       updateTaskView({ isEditView: true });
    }
    return (
