@@ -11,7 +11,7 @@ import  AddNewTask  from "../component/reusable_component/addNewTask";
 import  EditSavedTask  from "../component/reusable_component/savedTaskEditor";
 import  HelperBar  from "../component/reusable_component/helper_screen";
 
-// Define the type for task view state
+
 interface TaskViewState {
    isFullView: boolean;
    isEditView: boolean;
