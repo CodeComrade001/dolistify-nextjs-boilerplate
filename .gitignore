@@ -2,10 +2,9 @@
 
 localDolistify.session.sql
 settings.json
-notes.txt
 
 .vscode/
-lib/
+.lib/
 .env.local
 
 # dependencies
