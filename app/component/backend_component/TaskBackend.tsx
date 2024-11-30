@@ -110,7 +110,7 @@ export async function showSavedTaskSummaryView() {
 
 
 export async function showSavedTaskDetailView(id?: number, tableName?: string) {
-   if (!id || !tableName) { return}
+   if (!id || !tableName) { return }
 
    const client = await pool.connect();
    try {
@@ -125,6 +125,24 @@ export async function showSavedTaskDetailView(id?: number, tableName?: string) {
          const row = taskResult.rows;
          return row;
       }
+   } catch (error: unknown) {
+      const errorMessage = (error instanceof Error) ? error.message : "Unknown Message";
+      console.log("Error fetching task:", errorMessage);
+      return false;
+   } finally {
+      client.release();
+   }
+}
+
+export async function taskPositionRequirement() {
+   const client = await pool.connect();
+   try {
+      const taskQuery = "SELECT id, timestamp as timeAdded FROM personal_task where user_id = 1"
+      const taskResult = await client.query(taskQuery);
+      const row = taskResult.rows;
+      console.log("🚀 ~ taskPositionRequirement ~ row:", row)
+      return row;
+
    } catch (error: unknown) {
       const errorMessage = (error instanceof Error) ? error.message : "Unknown Message";
       console.log("Error fetching task:", errorMessage);

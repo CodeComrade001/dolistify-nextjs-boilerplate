@@ -2,6 +2,7 @@
   "name": "dolistify",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "classnames": "^2.5.1",
     "dotenv": "^16.4.5",
     "next": "14.2.13",
     "pg": "^8.13.1",
