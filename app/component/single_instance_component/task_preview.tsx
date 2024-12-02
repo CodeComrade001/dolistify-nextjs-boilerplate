@@ -25,11 +25,13 @@ export default function TaskDisplay({
          const queryResult = await showSavedTaskSummaryView();
          if (Array.isArray(queryResult)) {
             setTasks(queryResult);
+            console.log("🚀 ~ fetchTasks ~ queryResult:", queryResult)
             const styles = await Promise.all(
                queryResult.map(async (task) => ({
                   [task.id]: await setTaskPlacement(task.id),
                }))
             );
+            console.log("🚀 ~ fetchTasks ~ styles:", styles)
             setTaskStyle(Object.assign({}, ...styles));
          } else {
             setTasks([]);

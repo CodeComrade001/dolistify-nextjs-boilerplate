@@ -54,7 +54,7 @@
 .input_new_Title {
   transition: border-color 0.3s ease;
   margin: 0;
-  height: 30px;
+  height: 25px;
 }
 
 .input_new_Title:focus {
@@ -81,17 +81,15 @@
   align-items: center;
   padding: 3px 10px;
   gap: 10px;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 .group_selector_container {
   position: absolute;
-  /* display: none; */
   display: flex;
   flex-direction: column;
   width: 100%;
   font-size: 1rem;
-  font-weight: bolder;
 }
 
 .route_selector_container {
@@ -120,6 +118,18 @@
   position: relative;
 }
 
+.editing_new_title {
+  height: 30px;
+}
+
+.close_task {
+  height: 30px;
+  font-size: 1rem;
+  /* width: 100; */
+  border:none;
+  background-color: #98ff98;
+}
+
 .dashboard_options {
   padding: 3px 0;
   font-size: 1rem;
@@ -127,7 +137,6 @@
 }
 
 .dashboard_options:hover {
-
 }
 
 .dashboard_options:hover {
@@ -154,8 +163,11 @@
 }
 
 .content {
-  height: 50px;
+  height: 35px;
   border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: center;
+  align-items:center;
   transition: background-color 0.3s;
 }
 
@@ -172,16 +184,23 @@
 }
 
 .user_text {
+  margin-left: 10px;
   padding: 0px 0px;
   color: #333;
+  flex: 1;
+  display: flex;
   word-wrap: break-word;
-  border: 2px solid black;
+  border: 1px solid grey;
 }
 
 .user_input {
   font-size: 1.1rem;
-  height: 40px;
-  width: 100%;
+  height: fit-content;
+  padding:5px 10px;
+  border:none;
+  flex:1;
+  background-color: inherit;
+  width: inherit;
   transition: border-color 0.3s ease;
   margin: 0;
 }
@@ -224,7 +243,6 @@
   top: 90%;
   border: none;
 }
-
 
 /* ANIMATION FRAMES */
 @keyframes movedown {
