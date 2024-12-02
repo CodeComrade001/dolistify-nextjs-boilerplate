@@ -68,7 +68,6 @@ export default async function taskPosition(): Promise<{ id: number; row: number;
 
          return result;
       })();
-      console.log("🚀 ~ taskPosition ~ taskPosition:", taskPosition)
       return taskPosition;
    } catch (error: unknown) {
       const errorMessage = (error instanceof Error) ? error.message : "unknown Message";

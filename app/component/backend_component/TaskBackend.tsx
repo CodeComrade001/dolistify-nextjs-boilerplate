@@ -120,7 +120,7 @@ export async function showSavedTaskDetailView(id?: number, tableName?: string) {
       if (receivedID == null) {
          return;
       } else {
-         const taskQuery = `SELECT task_data->>'subtasks' AS allTask FROM ${received_table} WHERE id = $1`;
+         const taskQuery = `SELECT task_data->>'title' as taskTitle,task_data->>'subtasks' AS allTask FROM ${received_table} WHERE id = $1`;
          const taskResult = await client.query(taskQuery, [receivedID]);
          const row = taskResult.rows;
          return row;
@@ -140,7 +140,6 @@ export async function taskPositionRequirement() {
       const taskQuery = "SELECT id, timestamp as timeAdded FROM personal_task where user_id = 1"
       const taskResult = await client.query(taskQuery);
       const row = taskResult.rows;
-      console.log("🚀 ~ taskPositionRequirement ~ row:", row)
       return row;
 
    } catch (error: unknown) {
