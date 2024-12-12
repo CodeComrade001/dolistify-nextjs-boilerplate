@@ -1,3 +1,5 @@
+"use client";
+
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
