@@ -67,17 +67,46 @@ export default async function insertTask(
    }
 }
 
-export async function EditTask(
-   tableGroup?: string,
+export async function updateTaskInformation(
+   table?: string,
    tableGroupRoute?: string,
-   table?: number,   // Assuming `id` is a number. Adjust if it's a different type.
+   taskDetails?: { title: string; subtasks: Array<{ id: number; description: string }> }, // required
+   updatingIndex?: number,
    time?: number,
-   taskDetails?: { title: string; subtasks: { id: number; description: string }[] }, // required
-   deleteStatusId?: number
 ) {
-   // Function implementation
-}
+   const client = await pool.connect();
+   try {
+      // checking if id exists
+      const indexCheck = `SELECT task_data->>'subtasks' AS subtasks FROM ${table} WHERE id = $1`;
+      const indexCheckResult = await client.query(indexCheck, [updatingIndex]);
+      console.log("🚀 ~ initial task details:", indexCheckResult.rows);
 
+      // An id has been found in the table
+      if (indexCheckResult.rows.length > 0) {
+         const updatedTaskFormat = JSON.stringify(taskDetails);
+         
+         // Ensure timestamp is not included in the update by only updating task_data
+         const alterTableQuery = `UPDATE ${table} SET task_data = $1 WHERE id = $2`;
+         const alterTableQueryResult = await client.query(alterTableQuery, [updatedTaskFormat, updatingIndex]);
+         console.log("🚀 ~ alterTableQueryResult:", alterTableQueryResult);
+
+         // check if task was updated
+         const updatedTaskQuery = `SELECT task_data->>'subtasks' FROM ${table} WHERE id = $1`;
+         const updatedTaskResult = await client.query(updatedTaskQuery, [updatingIndex]);
+
+         console.log("🚀 ~ updated task details:", updatedTaskResult.rows);
+         return true;
+      }
+      // id is null or not found
+      return false;
+   } catch (error: unknown) {
+      const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
+      console.log("Error updating task: ", errorMessage);
+      return false;
+   } finally {
+      client.release();
+   }
+}
 
 export async function showSavedTaskSummaryView() {
    const client = await pool.connect();
@@ -108,7 +137,6 @@ export async function showSavedTaskSummaryView() {
    }
 }
 
-
 export async function showSavedTaskDetailView(id?: number, tableName?: string) {
    if (!id || !tableName) { return }
 
@@ -120,7 +148,7 @@ export async function showSavedTaskDetailView(id?: number, tableName?: string) {
       if (receivedID == null) {
          return;
       } else {
-         const taskQuery = `SELECT task_data->>'title' as taskTitle,task_data->>'subtasks' AS allTask FROM ${received_table} WHERE id = $1`;
+         const taskQuery = `SELECT task_data->>'title' as title,task_data->>'subtasks' AS subtasks FROM ${received_table} WHERE id = $1`;
          const taskResult = await client.query(taskQuery, [receivedID]);
          const row = taskResult.rows;
          return row;
@@ -137,7 +165,7 @@ export async function showSavedTaskDetailView(id?: number, tableName?: string) {
 export async function taskPositionRequirement() {
    const client = await pool.connect();
    try {
-      const taskQuery = "SELECT id, timestamp as timeAdded FROM personal_task where user_id = 1"
+      const taskQuery = "SELECT id, timestamp as timeAdded FROM personal_task where user_id = 1 ORDER BY timestamp ASC"
       const taskResult = await client.query(taskQuery);
       const row = taskResult.rows;
       return row;

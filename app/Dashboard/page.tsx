@@ -1,8 +1,8 @@
 "use client";
-
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Logo from "../public/logo/logo.png";
+import getWeatherInfo from '../api/route';
 
 interface RootLayoutProps {
    // Add the relevant fields based on your application's requirements
@@ -50,6 +50,12 @@ export default function DashboardPage({
       if (savedTheme) {
          setTheme(savedTheme);
       }
+      const queryData = {
+         latitude: 52.52,
+         longitude: 13.41,
+         current: ["temperature_2m", "apparent_temperature", "precipitation", "weather_code", "cloud_cover", "wind_speed_10m"],
+         timezone: "Europe/London"
+      };
 
       // Function to update time
       function updateTime() {
@@ -74,6 +80,8 @@ export default function DashboardPage({
          updateTime();
       }, 1000);
 
+      const weatherData = getWeatherInfo(queryData);
+      console.log("🚀 ~ useEffect ~ weatherData:", weatherData)
       // Cleanup the interval on component unmount
       return () => clearInterval(timer);
    }, []);
@@ -120,6 +128,9 @@ export default function DashboardPage({
       localStorage.setItem('theme', newTheme);
    }
 
+   function WeatherComponent() {
+
+   }
    return (
       <div className={theme === 'light' ? "dashboard-body-whiteTheme" : 'dashboard-body-blackTheme'}>
          <section className="full-body" id="root">

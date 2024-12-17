@@ -231,7 +231,7 @@
 
 .update_details {
   background-color: #98ff98;
-  height: fit-content;
+  height: 40px;
   width: fit-content;
   padding: 5px 10px;
   font-weight: bolder;
