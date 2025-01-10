@@ -13,16 +13,20 @@ interface TaskQueryResult {
 
 export default function TaskDisplay({
    editSavedTask,
+   dashboardBtn , 
+   dashboardRoute,
 }: {
    editSavedTask: (taskId: number) => void;
+   dashboardBtn : string; 
+   dashboardRoute: string;
 }): JSX.Element {
    const [tasks, setTasks] = useState<TaskQueryResult[]>([]);
    const [taskStyle, setTaskStyle] = useState<{ [key: number]: React.CSSProperties }>({});
    const [isStylesReady, setIsStylesReady] = useState(false);
 
-   async function fetchTasks() {
+   async function fetchTasks(dashboardBtn: string,dashboardRoute: string) {
       try {
-         const queryResult = await showSavedTaskSummaryView();
+         const queryResult = await showSavedTaskSummaryView(dashboardBtn,dashboardRoute );
          if (Array.isArray(queryResult)) {
             setTasks(queryResult);
             const styles = await Promise.all(
@@ -42,7 +46,7 @@ export default function TaskDisplay({
 
    async function setTaskPlacement(id: number): Promise<React.CSSProperties> {
       try {
-         const taskPositionArray = (await taskPosition()) || [];
+         const taskPositionArray = (await taskPosition(dashboardBtn,dashboardRoute)) || [];
          if (!Array.isArray(taskPositionArray)) {
             console.error("Invalid taskPositionArray");
             return {};
@@ -67,8 +71,8 @@ export default function TaskDisplay({
    }
 
    useEffect(() => {
-      fetchTasks().then(() => setIsStylesReady(true));
-   }, []);
+      fetchTasks(dashboardBtn,dashboardRoute).then(() => setIsStylesReady(true));
+   }, [dashboardBtn,dashboardRoute]);
 
    const containerClass = classNames({
       [taskDisplay.container_loader]: !isStylesReady,

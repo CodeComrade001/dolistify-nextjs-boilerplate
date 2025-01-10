@@ -313,6 +313,13 @@ button:hover .calender-year {
   font-size: 1.2rem;
 }
 
+.sub-routes-nav > .activeBtn {
+  background-image: linear-gradient(to right, green, yellow);
+  -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
+  box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
+  color: whitesmoke;
+} 
+
 .current-time {
   display: flex;
   flex-direction: row;
@@ -846,6 +853,13 @@ button:hover .calender-year {
   flex-direction: row;
   align-items: center;
   background-color: #98ff98;
+}
+
+#myDropdown .activeBtn{
+  background-image: linear-gradient(to right, green, yellow);
+  -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
+  box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
+  color: whitesmoke;
 }
 
 #myDropdown > button > h2 {

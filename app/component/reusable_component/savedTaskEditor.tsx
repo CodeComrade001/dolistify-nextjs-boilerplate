@@ -6,25 +6,23 @@ import { showSavedTaskDetailView, updateTaskInformation } from "../backend_compo
 interface savedTaskDataType {
    title: string;
    subtasks: Array<{ id: number; description: string }>;
+   status : Array<{id :number; completed : boolean ; missed : boolean}>;
 }
 
 export default function EditSavedTask({
    closeEditTaskView,
+   dashboardBtn,
+   dashBoardRoute,
    taskId,
 }: {
    closeEditTaskView: () => void;
    taskId?: number | null;
+   dashboardBtn?: string;
+   dashBoardRoute?: string;
 }): JSX.Element {
-   const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
    const [savedTask, setSavedTask] = useState<savedTaskDataType>();
    const [editedTask, setEditedTask] = useState<savedTaskDataType>();
    const [savedTaskStatus, setSavedTaskStatus] = useState<String>("Update")
-
-   function handleSelection(selection: "dashboardGroup" | "dashboardRoute") {
-      setActiveSelection((prevSelection) => (
-         prevSelection === selection ? "none" : selection
-      ));
-   }
 
    const addNewTaskRow = (prevTask: savedTaskDataType | undefined): savedTaskDataType | undefined => {
       if (!prevTask) return undefined;
@@ -69,11 +67,9 @@ export default function EditSavedTask({
       if (!editedTask) return;
       try {
          setSavedTaskStatus("Saving task...")
-         const updatedTable = "personal_task";
-         const updatedRoute = "completed";
          const updatingId = taskId;
          const updatedTaskDetails = editedTask;
-         const updatingTask = await updateTaskInformation(updatedTable, updatedRoute, updatedTaskDetails, updatingId)
+         const updatingTask = await updateTaskInformation(dashboardBtn, dashBoardRoute, updatedTaskDetails, updatingId)
          if (updatingTask) {
             setSavedTaskStatus("Updating successful");
             closeEditTaskView();
@@ -91,25 +87,18 @@ export default function EditSavedTask({
    useEffect(() => {
       async function savedTaskQuery() {
          try {
-            const receivedTableName = "personal_task";
             if (taskId != null) {
-               const savedTaskArray = await showSavedTaskDetailView(taskId, receivedTableName);
+               const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashBoardRoute);
+               console.log("🚀 ~ savedTaskQuery ~ savedTaskArray:", savedTaskArray)
 
-               // Ensure the response is an array
-               if (!Array.isArray(savedTaskArray) || savedTaskArray.length === 0) {
-                  console.warn("Unexpected response format or empty data");
-                  return;
-               }
+               const taskFormat = {
+                  ...savedTaskArray,
+                  subtasks: JSON.parse(savedTaskArray.subtasks),
+               };
+               console.log("🚀 ~ savedTaskQuery ~ taskFormat:", taskFormat)
 
-               // Extract and parse the data
-               const task = savedTaskArray[0];
-               if (typeof task.subtasks === "string") {
-                  task.subtasks = JSON.parse(task.subtasks); // Parse the stringified array
-               }
-
-               console.log("🚀 ~ savedTaskQuery ~ processed task:", task);
-               setSavedTask(task); // Save the processed task
-               setEditedTask(task);
+               setSavedTask(taskFormat); // Save the processed task
+               setEditedTask(taskFormat);
             } else {
                console.warn("Invalid taskId provided. Skipping query.");
             }
@@ -119,7 +108,7 @@ export default function EditSavedTask({
       }
 
       savedTaskQuery();
-   }, [taskId]);
+   }, [taskId, dashboardBtn, dashBoardRoute]);
 
    return (
       <>
@@ -135,74 +124,14 @@ export default function EditSavedTask({
                   {/* Header Section */}
                   <div className={editSavedTask.header}>
                      <div className={editSavedTask.moreTitleDetails}>
-                        {/* Dropdown for Dashboard Group */}
+                        {/* Show Completed Task */}
                         <div className={editSavedTask.dashboard}>
-                           <button
-                              className={editSavedTask.dashboard_container}
-                              onClick={() => handleSelection("dashboardGroup")}
-                           >
-                              <div className={editSavedTask.dashboard_selector}>Dashboard Group</div>
-                              <div className={editSavedTask.selector_icon}>
-                                 <svg
-                                    height="20"
-                                    width="20"
-                                    viewBox="0 0 16 16"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <g id="svgBackground" strokeWidth="0"></g>
-                                    <g id="svgTracer" strokeLinecap="round" strokeLinejoin="round"></g>
-                                    <g id="iconCarrier">
-                                       <path
-                                          d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z"
-                                          fill="#000000"
-                                       />
-                                    </g>
-                                 </svg>
-                              </div>
-                           </button>
-                           {activeSelection === "dashboardGroup" && (
-                              <div className={editSavedTask.group_selector_container}>
-                                 {["Personal", "Work", "Time Bound", "Completed", "Missed", "Goal"].map((option) => (
-                                    <button key={option} className={editSavedTask.dashboard_options}>{option}</button>
-                                 ))}
-                              </div>
-                           )}
+                           Completed task
                         </div>
 
-                        {/* Dropdown for Dashboard Route */}
+                        {/* Show Remaining Task Not Completed */}
                         <div className={editSavedTask.editing_items}>
-                           <button
-                              className={editSavedTask.dashboard_container}
-                              onClick={() => handleSelection("dashboardRoute")}
-                           >
-                              <div className={editSavedTask.dashboard_selector}>Dashboard Route</div>
-                              <div className={editSavedTask.selector_icon}>
-                                 <svg
-                                    height="20"
-                                    width="20"
-                                    viewBox="0 0 16 16"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <g id="svgBackground" strokeWidth="0"></g>
-                                    <g id="svgTracer" strokeLinecap="round" strokeLinejoin="round"></g>
-                                    <g id="iconCarrier">
-                                       <path
-                                          d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z"
-                                          fill="#000000"
-                                       />
-                                    </g>
-                                 </svg>
-                              </div>
-                           </button>
-                           {activeSelection === "dashboardRoute" && (
-                              <div className={editSavedTask.route_selector_container}>
-                                 {["Upcoming Tasks", "High-Priority", "Primary Task", "Archived Task"].map((route) => (
-                                    <button key={route} className={editSavedTask.dashboard_options}>
-                                       {route}
-                                    </button>
-                                 ))}
-                              </div>
-                           )}
+                           Remaining Task
                         </div>
 
                         {/* Input for Task Title */}
@@ -290,6 +219,18 @@ export default function EditSavedTask({
                                                 ></path>
                                              </g>
                                           </g>
+                                       </g>
+                                    </svg>
+                                 </td>
+                                 <td className={editSavedTask.user_complete}>
+                                    <svg height="20" width="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="#0ad406">
+                                       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                                       <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                                       <g id="SVGRepo_iconCarrier">
+                                          <path
+                                             fill="#0ad406"
+                                             d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm-55.808 536.384-99.52-99.584a38.4 38.4 0 1 0-54.336 54.336l126.72 126.72a38.272 38.272 0 0 0 54.336 0l262.4-262.464a38.4 38.4 0 1 0-54.272-54.336L456.192 600.384z"
+                                          ></path>
                                        </g>
                                     </svg>
                                  </td>
