@@ -4,11 +4,39 @@ import Image from 'next/image';
 import Logo from "../public/logo/logo.png";
 import getWeatherInfo from '../api/route';
 
-interface RootLayoutProps {
-   // Add the relevant fields based on your application's requirements
+interface WeatherConditionDataType {
+   latitude: number;
+   longitude: number;
+   generationtime_ms: number;
+   utc_offset_seconds: number;
+   timezone: string;
+   timezone_abbreviation: string;
+   elevation: number;
+   current_units: {
+      time: string;
+      interval: string;
+      temperature_2m: string;
+      apparent_temperature: string;
+      precipitation: string;
+      weather_code: string;
+      cloud_cover: string;
+      wind_speed_10m: string;
+   };
+   current: {
+      time: string;
+      interval: number;
+      temperature_2m: number;
+      apparent_temperature: number;
+      precipitation: number;
+      weather_code: number;
+      cloud_cover: number;
+      wind_speed_10m: number;
+   };
+   weatherCondition: string;
 }
 
-interface DashboardPageProps extends RootLayoutProps {
+
+interface DashboardPageProps {
    profileImage: any;
    profileDetails: any;
    userTask: any;
@@ -16,6 +44,7 @@ interface DashboardPageProps extends RootLayoutProps {
    weeklyData: any;
    helperViewTab: any;
    showTaskDisplay: () => void;
+   userTaskQueryPath: (dashboardBtn: string, dashboardRoute: string) => void
 }
 
 export default function DashboardPage({
@@ -26,6 +55,7 @@ export default function DashboardPage({
    weeklyData,
    helperViewTab,
    showTaskDisplay,
+   userTaskQueryPath,
 }: DashboardPageProps): JSX.Element {
 
    const [time, setTime] = useState({
@@ -33,29 +63,47 @@ export default function DashboardPage({
       min: '',
       sec: '',
    });
-
    const [date, setDate] = useState({
       day: '',
       currentDate: '',
       month: '',
       year: 0
    });
-
    const [theme, setTheme] = useState('light');
-   const [fullTaskQuery, setFullTaskQuery] = useState(false);
+   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number, timeZone: string } | null>(null);
+   const [weatherCondition, setWeatherCondition] = useState<WeatherConditionDataType | null>();
+   const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "completed" | "missed" | "repeated">("personal");
+   const [activeDashboardBtnRoute, setActiveDashboardBtnRoute] = useState("high_priority");
 
    useEffect(() => {
       // Check localStorage for user's theme preference
       const savedTheme = localStorage.getItem('theme');
+      const options: PositionOptions = {
+         enableHighAccuracy: true,
+         timeout: 5000,
+         maximumAge: 0,
+      };
+
+      function success(pos: GeolocationPosition): void {
+         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+         const { latitude, longitude } = pos.coords;
+         setCoordinates({ latitude, longitude, timeZone });
+         console.log(`Latitude: ${latitude}, Longitude: ${longitude}, TimeZone: ${timeZone}`);
+      }
+
+      function error(err: GeolocationPositionError): void {
+         console.warn(`ERROR(${err.code}): ${err.message}`);
+      }
+
+      if (navigator.geolocation) {
+         navigator.geolocation.getCurrentPosition(success, error, options);
+      } else {
+         console.warn("Geolocation is not supported by this browser.");
+      }
+
       if (savedTheme) {
          setTheme(savedTheme);
       }
-      const queryData = {
-         latitude: 52.52,
-         longitude: 13.41,
-         current: ["temperature_2m", "apparent_temperature", "precipitation", "weather_code", "cloud_cover", "wind_speed_10m"],
-         timezone: "Europe/London"
-      };
 
       // Function to update time
       function updateTime() {
@@ -80,11 +128,39 @@ export default function DashboardPage({
          updateTime();
       }, 1000);
 
-      const weatherData = getWeatherInfo(queryData);
-      console.log("🚀 ~ useEffect ~ weatherData:", weatherData)
       // Cleanup the interval on component unmount
       return () => clearInterval(timer);
    }, []);
+
+   useEffect(() => {
+      const fetchWeatherData = async () => {
+         if (coordinates) {
+            const queryData = {
+               latitude: coordinates.latitude,
+               longitude: coordinates.longitude,
+               current: ["temperature_2m", "apparent_temperature", "precipitation", "weather_code", "cloud_cover", "wind_speed_10m",],
+               timezone: coordinates.timeZone,
+            };
+
+            try {
+               const weatherData = await getWeatherInfo(queryData); // Await the promise
+               if (weatherData) {
+                  setWeatherCondition(weatherData); // Set the resolved value
+               }
+               console.log("Weather Data:", weatherData);
+            } catch (error) {
+               console.error("Error fetching weather data:", error);
+            }
+         }
+      };
+
+      fetchWeatherData(); // Call the async function
+   }, [coordinates]);
+
+   const handleClick = (dashboardBtn: string, dashboardRoute: string) => {
+      console.log(`Dashboard page: ${dashboardBtn}, Dashboard route: ${dashboardRoute}`);
+      userTaskQueryPath(dashboardBtn, dashboardRoute);
+   };
 
    function getHrs(): string {
       const hrs: number = new Date().getHours();
@@ -128,9 +204,43 @@ export default function DashboardPage({
       localStorage.setItem('theme', newTheme);
    }
 
-   function WeatherComponent() {
-
+   function dashboardRouteOptions(category: "personal" | "work" | "time_bound" | "completed" | "missed" | "repeated") {
+      switch (category) {
+         case "personal":
+            return {
+               routeOptions: ["High-Priority", "Primary Task", "Completed Task", "Missed Task", "Archived Task"],
+               activeRouteOptions: ["high_priority", "main", "completed", "missed", "archived"],
+            }
+         case "work":
+            return {
+               routeOptions: ["High-Priority", "Primary Task", "Completed Task", "Missed Task", "Archived Task"],
+               activeRouteOptions: ["high_priority", "main", "completed", "missed", "archived"],
+            }
+         case "time_bound":
+            return {
+               routeOptions: ["UpComing Tasks", "Deadline Task", "Missed Task", "Completed Task", "Archived Task", "Time Deadline Task", "Date Deadline Task"],
+               activeRouteOptions: ["upComing", "deadline", "missed", "completed", "archived", "time_deadline", "date_deadline"],
+            }
+         case "completed":
+            return {
+               routeOptions: ["UpComing Tasks", "High Priority", "Primary Task", "Deadline Task", "Archived Task"],
+               activeRouteOptions: ["upComing", "high_priority", "main", "deadline", "archived"],
+            }
+         case "missed":
+            return {
+               routeOptions: ["UpComing Tasks", "High Priority", "Primary Task", "Deadline Task", "Archived Task"],
+               activeRouteOptions: ["upComing", "high_priority", "main", "deadline", "archived"],
+            }
+         case "repeated":
+            return {
+               routeOptions: ["UpComing Tasks", "High Priority", "Primary Task",  "Missed Task", "Completed Task", "Archived Task", "Time Deadline Task", "Date Deadline Task"],
+               activeRouteOptions: ["upComing", "high_priority", "main",  "missed", "completed", "archived", "time_deadline", "date_deadline"],
+            }
+      }
    }
+
+   const dashboardRouteOptionsQuery = dashboardRouteOptions(activeDashboardBtn);
+
    return (
       <div className={theme === 'light' ? "dashboard-body-whiteTheme" : 'dashboard-body-blackTheme'}>
          <section className="full-body" id="root">
@@ -239,19 +349,26 @@ export default function DashboardPage({
                      </div>
                      <div className="sub-routes">
                         <div className="sub-routes-nav">
-                           <button type="button" >Upcoming Tasks</button>
-                           <button>High-Priority</button>
-                           <button>Primary Task</button>
-                           <button>Deadline Task</button>
-                           <button>Missed Task</button>
-                           <button>Custom Task</button>
-                           <button>Archived Task</button>
+                           {dashboardRouteOptionsQuery.routeOptions.map((name, index) => (
+                              <button
+                                 key={index}
+                                 onClick={() => {
+                                    const activeRoute = dashboardRouteOptionsQuery.activeRouteOptions[index]; // Get corresponding activeRouteOption
+                                    setActiveDashboardBtnRoute(activeRoute); // Updates the active route
+                                    handleClick(activeDashboardBtn, activeRoute); // Passes the correct active button and active route
+                                 }}
+                                 className={activeDashboardBtnRoute === dashboardRouteOptionsQuery.activeRouteOptions[index] ? "activeBtn" : ""}
+                              >
+                                 {name} {/* Render the button label */}
+                              </button>
+                           ))}
                            <button
                               onClick={(e) => {
                                  e.stopPropagation();
                                  showTaskDisplay();
                               }}
-                           >New Task
+                           >
+                              New Task
                            </button>
                         </div>
                      </div>
@@ -260,10 +377,10 @@ export default function DashboardPage({
                      <div className="current-time">
                         <div className="weather">
                            <div className="weather-info">
-                              <h2 className="location">Toronto</h2>
+                              <h2 className="location">{weatherCondition?.timezone}</h2>
                               <div className="location-more-detail">
-                                 <p className="location-weather">Sunny</p>
-                                 <h1 className="temp">-20&#176;C</h1>
+                                 <p className="location-weather">{weatherCondition?.weatherCondition}</p>
+                                 <h1 className="temp">{weatherCondition?.current.temperature_2m}&#176;C</h1>
                               </div>
                            </div>
                            <div className="weather-sub-header">
@@ -491,7 +608,13 @@ export default function DashboardPage({
                         <h1>Dashboard</h1>
                      </div>
                      <div id="myDropdown" className="dropdown-content">
-                        <button>
+                        <button
+                           onClick={() => {
+                              handleClick("personal", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("personal");
+                           }}
+                           className={activeDashboardBtn === "personal" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  viewBox="0 0 1024 1024"
@@ -515,7 +638,13 @@ export default function DashboardPage({
                            </span>
                            <h2>Personal</h2>
                         </button>
-                        <button>
+                        <button
+                           onClick={() => {
+                              handleClick("work", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("work")
+                           }}
+                           className={activeDashboardBtn === "work" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  fill="#000000"
@@ -544,7 +673,13 @@ export default function DashboardPage({
                            <h2>Work</h2>
                         </button>
 
-                        <button>
+                        {/* <button
+                           onClick={() => {
+                              handleClick("custom", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("custom")
+                           }}
+                           className={activeDashboardBtn === "custom" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  fill="#000000"
@@ -567,8 +702,14 @@ export default function DashboardPage({
                               </svg>
                            </span>
                            <h2>Custom</h2>
-                        </button>
-                        <button>
+                        </button> */}
+                        <button
+                           onClick={() => {
+                              handleClick("time_bound", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("time_bound")
+                           }}
+                           className={activeDashboardBtn === "time_bound" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  fill="#000000"
@@ -590,7 +731,13 @@ export default function DashboardPage({
                            </span>
                            <h2>Time-bound</h2>
                         </button>
-                        <button>
+                        <button
+                           onClick={() => {
+                              handleClick("completed", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("completed")
+                           }}
+                           className={activeDashboardBtn === "completed" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  viewBox="0 0 1024 1024"
@@ -613,7 +760,13 @@ export default function DashboardPage({
                            </span>
                            <h2>Completed</h2>
                         </button>
-                        <button>
+                        <button
+                           onClick={() => {
+                              handleClick("missed", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("missed")
+                           }}
+                           className={activeDashboardBtn === "missed" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  viewBox="0 0 512 512"
@@ -641,7 +794,13 @@ export default function DashboardPage({
                            </span>
                            <h2>Missed</h2>
                         </button>
-                        <button>
+                        <button
+                           onClick={() => {
+                              handleClick("repeated", activeDashboardBtnRoute);
+                              setActiveDashboardBtn("repeated")
+                           }}
+                           className={activeDashboardBtn === "repeated" ? "activeBtn" : ""}
+                        >
                            <span>
                               <svg
                                  fill="#000000"
@@ -671,7 +830,7 @@ export default function DashboardPage({
                                  </g>
                               </svg>
                            </span>
-                           <h2>Goal</h2>
+                           <h2>Repeated</h2>
                         </button>
                         <div className="goal-option">
                            <button><h2>Daily</h2></button>

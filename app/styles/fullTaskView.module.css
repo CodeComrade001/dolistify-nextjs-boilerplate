@@ -28,20 +28,94 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  padding:5px 0px;
+  padding: 5px 0px;
+  height: 40px;
 }
 
 .taskSelector {
-  flex: 1;
-  font-size: 1rem;
-  height: fit-content;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 0 5px;
+  width: 100%;
 }
 
-.label {
+.taskSelector > input,
+.taskSelector > button {
+  flex: 1;
+}
+
+.dashboard {
+  height: 100%;
+  width: 30%;
+  position: relative;
+  background-color: #98ff98;
+}
+
+.dashboard_route {
+  width: 30%;
+  height: 100%;
+  position: relative;
+  background-color: #98ff98;
+}
+
+.dashboard_group_item {
+  background-color: #98ff98;
+  border: none;
+  width: 100%;
+  flex: 1;
+  gap: 5px;
+  display: flex;
+  align-items: center;
+  padding: 10px 5px;
+  position: relative;
+}
+
+.dashboard_route_items {
+  width: 100%;
+  background-color: #98ff98;
+  border: none;
+  padding: 10px 5px;
+  gap: 5px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.dashboard_selector {
+  font-weight: bolder;
   font-size: 1rem;
-  font-weight: bold;
-  /* padding: 5px 10px; */
-  display: none;
+  flex: 1;
+  text-align: left;
+}
+
+.selector_icon {
+  font-weight: bolder;
+  font-size: 1rem;
+}
+
+.group_selector_container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.route_selector_container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.dashboard_options {
+  padding: 3px 0;
+  font-size: 1rem;
+  font-weight: bolder;
 }
 
 .taskDropdown {
@@ -56,6 +130,16 @@
 .option {
   font-size: 1rem;
   font-weight: bolder;
+}
+
+.time_deadline {
+  height: 40px;
+  font-size: 1rem;
+}
+
+.date_deadline {
+  height: 40px;
+  font-size: 1rem;
 }
 
 .taskOptions {
@@ -80,7 +164,7 @@
 
 .task_title_input {
   font-size: 1.1rem;
-  height: 25px;
+  height: 40px;
   transition: border-color 0.3s ease;
   margin: 0;
 }
@@ -94,7 +178,7 @@
 
 .task_table {
   width: 100%;
-  height:auto;
+  height: auto;
 }
 
 .table_body {

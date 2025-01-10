@@ -2,9 +2,9 @@
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
-export default async function taskPosition(): Promise<{ id: number; row: number; column: number }[] | boolean> {
+export default async function taskPosition(dashboardBtn: string,dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
    try {
-      const result = await taskPositionRequirement();
+      const result = await taskPositionRequirement(dashboardBtn,dashboardRoute);
 
       if (!result) {
          console.log("Error fetching task");
