@@ -3,17 +3,20 @@
 import { useState } from "react";
 import fullTaskView from "../../styles/fullTaskView.module.css";
 import insertTask from "../backend_component/TaskBackend";
-import { useFormStatus } from "react-dom";
+
+interface newTaskDataType {
+   title: string;
+   subtasks: Array<{ id: number; description: string }>;
+   status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
+}
 
 export default function AddNewTask({
    closeFullTaskView,
 }: {
    closeFullTaskView: () => void;
-}): JSX.Element {
+}) {
    const [submitCondition, setSubmitCondition] = useState("Done");
    const [save, setSave] = useState(false);
-   const { pending } = useFormStatus();
-   const [newTaskTitle, setNewTaskTitle] = useState("")
    const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
    const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task">("Personal Task");
    const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated">("personal");
@@ -21,9 +24,10 @@ export default function AddNewTask({
    const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
    const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
    const [userDeadline, setUserDeadline] = useState<string | number>("")
-   const [taskDetails, setTaskDetails] = useState({
+   // const [addingRow, setAddingRow] = useState(false);
+   const [taskDetails, setTaskDetails] = useState<newTaskDataType>({
       title: "",
-      subtasks: [{ id: 1, userInput: "" }],
+      subtasks: [{ id: 1, description: "" }],
       status: [{ id: 1, completed: null, missed: null }],
    })
 
@@ -34,7 +38,11 @@ export default function AddNewTask({
    }
 
    function handleTitleChange(event: React.ChangeEvent<HTMLInputElement>) {
-      setNewTaskTitle(event.target.value);
+      const userInputTitle = event.target.value;
+      setTaskDetails((prevTask) => ({
+         ...prevTask,
+         title: userInputTitle,
+      }))
    }
 
    const isDeadlineValid = (deadline: string | number): boolean => {
@@ -59,7 +67,7 @@ export default function AddNewTask({
             ...taskDetails.status.slice(0, index),
             ...taskDetails.status.slice(index + 1),
          ];
-   
+
          setTaskDetails((prevDetails) => ({
             ...prevDetails,
             subtasks: updatedRowIndex,
@@ -67,79 +75,38 @@ export default function AddNewTask({
          }));
       }
    }
-   
 
-   async function insertIntoDB() {
-
-      const dashboard = activeDashboardBtn;
-      const dashboardRoute = activeDashboardRoute;
-      console.log("🚀 ~ insertIntoDB ~ dashboard:", dashboard)
-      console.log("🚀 ~ insertIntoDB ~ dashboardRoute:", dashboardRoute)
-
-      const userEmail = "john.doe@example.com";
-      const taskDetailsJSON = {
-         title: taskDetails.title,
-         subtasks: taskDetails.subtasks.map((row, index) => ({
-            id: index + 1,
-            description: row.userInput,
-         })),
-         status: taskDetails.status.map((status, index) => ({
-            id: index + 1,
-            completed: status.completed,
-            missed: status.missed,
-         }))
-      };
-      console.log("🚀 ~ insertIntoDB ~ taskDetailsJSON:", taskDetailsJSON)
-
-      const isAnyRowEmpty = taskDetails.subtasks.some(row => row.userInput.trim() === "");
-      if (isAnyRowEmpty) {
-         setSubmitCondition("Empty Input");
-         setSave(false);
-         return;
+   const addExtraInputColumn = (e: React.KeyboardEvent, index: number) => {
+      console.log("🚀 ~ addExtraInputColumn ~ e:", e.key)
+      if (index < 0 || index >= taskDetails.subtasks.length) {
+         console.log("Invalid index for completed or missed.");
       }
-
-      if (isDeadlineValid(userDeadline)) {
-         const success = await insertTask(dashboard, dashboardRoute, userEmail, taskDetailsJSON, userDeadline);
-         setSubmitCondition(success ? "Successful" : "Failed");
-         setSave(false);
-      } else {
-         // Iterate through each row to insert each task individually
-         const success = await insertTask(dashboard, dashboardRoute, userEmail, taskDetailsJSON);
-         setSubmitCondition(success ? "Successful" : "Failed");
-         setSave(false);
-      }
-
-   }
-
-   const addExtraRow = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
       if (e.key === "Enter") {
-         if (taskDetails.subtasks[index].userInput.trim() === "") return;
+         if (taskDetails.subtasks[index].description.trim() === "") return; 
+
+         const newTask = { id: taskDetails.subtasks.length + 1, description: "" };
+         const newStatus = { id: taskDetails.status.length + 1, completed: null, missed: null };
          setTaskDetails((prevDetails) => ({
             ...prevDetails, // Keep other properties unchanged
-            subtasks: [
-               ...prevDetails.subtasks,
-               { id: prevDetails.subtasks.length + 1, userInput: "" },
-            ],
-            status: [
-               ...prevDetails.status,
-               { id: prevDetails.status.length + 1, completed: null, missed: null },
-            ],
+            subtasks: [...prevDetails.subtasks, newTask,],
+            status: [...prevDetails.status, newStatus,],
          }));
-      }
-   };
+      };
+   }
+
 
    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
       const updatedSubtasks = taskDetails.subtasks.map((row, idx) =>
-         idx === index ? { ...row, userInput: e.target.value } : row
+         idx === index ? { ...row, description: e.target.value } : row
       );
-   
+
       setTaskDetails((prevDetails) => ({
          ...prevDetails, // Keep other properties unchanged
          subtasks: updatedSubtasks, // Update the subtasks array
       }));
    };
-   
-   function dashboardRouteOptions(category: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") {
+
+   function dashboardRouteOptions(category: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" ) {
       switch (category) {
          case "Personal Task":
             return {
@@ -176,6 +143,61 @@ export default function AddNewTask({
 
    const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn)
 
+
+   const handleOptionClick = (option: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") => {
+      const dashboard = dashboardRouteOptions(option).activeDashboard;
+   
+      if (dashboard !== "Time-bound Task") {
+         setUserDeadline("");
+      }
+   
+      setDashboardBtn(option);
+      setDashboard(option);
+      setActiveDashboardBtn(dashboard as "personal" | "work" | "time_bound" | "repeated");
+      setActiveSelection("none");
+   };
+   
+
+   async function insertIntoDB() {
+      const dashboardBtn = activeDashboardBtn;
+      const dashboardRoute = activeDashboardRoute;
+      console.log("🚀 ~ insertIntoDB ~ dashboard:", dashboard)
+      console.log("🚀 ~ insertIntoDB ~ dashboardRoute:", dashboardRoute)
+
+      const userEmail = "john.doe@example.com";
+      const taskDetailsJSON = {
+         title: taskDetails.title,
+         subtasks: taskDetails.subtasks.map((row, index) => ({
+            id: index + 1,
+            description: row.description,
+         })),
+         status: taskDetails.status.map((status, index) => ({
+            id: index + 1,
+            completed: status.completed,
+            missed: status.missed,
+         }))
+      };
+      console.log("🚀 ~ insertIntoDB ~ taskDetailsJSON:", taskDetailsJSON)
+
+      const isAnyRowEmpty = taskDetails.subtasks.some(row => row.description.trim() === "");
+      if (isAnyRowEmpty) {
+         setSubmitCondition("Empty Input");
+         setSave(false);
+         return;
+      }
+
+      if (isDeadlineValid(userDeadline)) {
+         const success = await insertTask(dashboardBtn, dashboardRoute, userEmail, taskDetails, userDeadline);
+         setSubmitCondition(success ? "Successful" : "Failed");
+         setSave(false);
+      } else {
+         // Iterate through each row to insert each task individually
+         const success = await insertTask(dashboardBtn, dashboardRoute, userEmail, taskDetails);
+         setSubmitCondition(success ? "Successful" : "Failed");
+         setSave(false);
+      }
+   }
+
    return (
       <div className={fullTaskView.taskView_items}>
          <div className={fullTaskView.taskHeader}>
@@ -210,13 +232,7 @@ export default function AddNewTask({
                            <button
                               key={option}
                               className={fullTaskView.dashboard_options}
-                              onClick={() => {
-                                 const dashboard = dashboardRouteOptions(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task").activeDashboard; // Pass current selection directly
-                                 setDashboardBtn(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
-                                 setDashboard(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
-                                 setActiveDashboardBtn(dashboard as "personal" | "work" | "time_bound" | "repeated");
-                                 setActiveSelection("none");
-                              }}
+                              onClick={() => handleOptionClick(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task")}
                            >
                               {option}
                            </button>
@@ -294,7 +310,7 @@ export default function AddNewTask({
                   onChange={handleTitleChange}
                   type="text"
                   placeholder="Enter a title for your task"
-                  value={newTaskTitle}
+                  value={taskDetails.title}
                   className={fullTaskView.task_title_input}
                />
                <button
@@ -316,18 +332,20 @@ export default function AddNewTask({
                         <th className={fullTaskView.mark}>
                            <div className={fullTaskView.taskCount}> {index + 1} </div>
                         </th>
-                        <td className={fullTaskView.user_text}>
+                        <td
+                           className={fullTaskView.user_text}
+                        >
                            <input
                               type="text"
-                              value={row.userInput}
+                              value={row.description}
                               onChange={(e) => handleInputChange(e, index)}
-                              onKeyDown={(e) => addExtraRow(e, index)}
+                              onKeyPress={(e) => addExtraInputColumn(e, index)}
                               className={fullTaskView.user_input}
                            />
                         </td>
                         <td
                            className={fullTaskView.user_delete}
-                           onClick={() => deleteRow(index)}
+                           onClick={() => { deleteRow(index) }}
                         >
                            <svg
                               viewBox="0 0 512 512"
@@ -372,8 +390,7 @@ export default function AddNewTask({
          </div>
          <button
             className={fullTaskView.send}
-            onClick={insertIntoDB}
-            disabled={pending || save} // Button disabled while pending or saving
+            onClick={() =>insertIntoDB()}// Button disabled while pending or saving
             type="submit"
          >
             {save ? "Submitting..." : submitCondition}
@@ -381,3 +398,4 @@ export default function AddNewTask({
       </div>
    );
 }
+

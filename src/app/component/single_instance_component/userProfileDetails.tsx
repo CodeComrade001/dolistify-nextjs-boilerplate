@@ -1,8 +1,8 @@
 import React from "react";
-import Profile from "../../public/images/profile.png";
+import Profile from "../../../../public/images/profile.png";
 import Image from "next/image";
 
-export default function ProfileDetails(): JSX.Element {
+export default function ProfileDetails() {
    return (
       <div className="profile-details">
       <p id="fullname">Kim Wu Song</p>
@@ -11,7 +11,7 @@ export default function ProfileDetails(): JSX.Element {
    );
 }
 
-export function ProfileImage() : JSX.Element {
+export function ProfileImage()  {
    return (
       <Image src={Profile} width="60" height="60" alt="Profile" placeholder="blur" />
    );

@@ -1,8 +1,0 @@
-Remember time bound should have 
-Upcoming Tasks
-High-Priority
-Deadline Task
-Missed Task
-Custom Task
-Archived Task
-New Task 

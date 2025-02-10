@@ -3,7 +3,7 @@
 import { useState } from "react";
 import helperScreenStyle from "../../styles/helperScreenStyle.module.css";
 
-export default function HelperBar(): JSX.Element {
+export default function HelperBar() {
    const [helperBarOpen, setHelperBarOpen] = useState<"error" | "success" | "warning" | "alert" | "message">("warning");
    const [isHovered, setIsHovered] = useState(false);
 

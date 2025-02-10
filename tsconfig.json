@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "forceConsistentCasingInFileNames": true,
+    "jsx": "preserve",
+    "target": "ES2017",
     "lib": [
       "dom",
       "dom.iterable",
@@ -15,7 +16,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    // "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
@@ -24,7 +25,7 @@
     ],
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     }
   },
