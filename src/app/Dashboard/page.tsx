@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Logo from "../public/logo/logo.png";
+import Logo from "../../../public/logo/logo.png";
 import getWeatherInfo from '../api/route';
 
 interface WeatherConditionDataType {
@@ -37,9 +37,9 @@ interface WeatherConditionDataType {
 
 
 interface DashboardPageProps {
-   profileImage: any;
+   profileImage: string;
    profileDetails: any;
-   userTask: any;
+   userTask: any ;
    userDeletedFiles: any;
    weeklyData: any;
    helperViewTab: any;
@@ -56,19 +56,7 @@ export default function DashboardPage({
    helperViewTab,
    showTaskDisplay,
    userTaskQueryPath,
-}: DashboardPageProps): JSX.Element {
-
-   const [time, setTime] = useState({
-      hrs: '',
-      min: '',
-      sec: '',
-   });
-   const [date, setDate] = useState({
-      day: '',
-      currentDate: '',
-      month: '',
-      year: 0
-   });
+}: DashboardPageProps) {
    const [theme, setTheme] = useState('light');
    const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number, timeZone: string } | null>(null);
    const [weatherCondition, setWeatherCondition] = useState<WeatherConditionDataType | null>();
@@ -105,31 +93,6 @@ export default function DashboardPage({
          setTheme(savedTheme);
       }
 
-      // Function to update time
-      function updateTime() {
-         setTime({
-            hrs: getHrs(),
-            min: getMin(),
-            sec: getSec(),
-         });
-         setDate({
-            day: getDay(),
-            currentDate: getDate(),
-            month: getMonth(),
-            year: getYear(),
-         });
-      }
-
-      // Initial time setting
-      updateTime();
-
-      // Update time every second
-      const timer = setInterval(() => {
-         updateTime();
-      }, 1000);
-
-      // Cleanup the interval on component unmount
-      return () => clearInterval(timer);
    }, []);
 
    useEffect(() => {
@@ -162,42 +125,7 @@ export default function DashboardPage({
       userTaskQueryPath(dashboardBtn, dashboardRoute);
    };
 
-   function getHrs(): string {
-      const hrs: number = new Date().getHours();
-      return hrs < 10 ? `0${hrs}` : `${hrs}`;
-   }
-
-   function getMin(): string {
-      const min: number = new Date().getMinutes();
-      return min < 10 ? `0${min}` : `${min}`;
-   }
-
-   function getSec(): string {
-      const sec: number = new Date().getSeconds();
-      return sec < 10 ? `0${sec}` : `${sec}`;
-   }
-
-   function getDay(): string {
-      const daysOfTheWeek: string[] = ["SUN", "MON", "TUE", "WED", "THUR", "FRI", "SAT"];
-      const dayIndex = new Date().getDay();
-      return daysOfTheWeek[dayIndex];
-   }
-
-   function getDate(): string {
-      const date: number = new Date().getDate();
-      return date < 10 ? `0${date}` : `${date}`;
-   }
-
-   function getMonth(): string {
-      const months: string[] = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-      const monthIndex: number = new Date().getMonth();
-      return months[monthIndex];
-   }
-
-   function getYear(): number {
-      return new Date().getFullYear();
-   }
-
+   
    function ThemeChange() {
       const newTheme = theme === 'light' ? 'dark' : 'light';
       setTheme(newTheme);
@@ -374,36 +302,8 @@ export default function DashboardPage({
                      </div>
                   </div>
                   <div className="second-sub-header">
-                     <div className="current-time">
-                        <div className="weather">
-                           <div className="weather-info">
-                              <h2 className="location">{weatherCondition?.timezone}</h2>
-                              <div className="location-more-detail">
-                                 <p className="location-weather">{weatherCondition?.weatherCondition}</p>
-                                 <h1 className="temp">{weatherCondition?.current.temperature_2m}&#176;C</h1>
-                              </div>
-                           </div>
-                           <div className="weather-sub-header">
-                              <div className="date-day">{date.day}</div>
-                              <div className="day-or-night">{time.hrs >= "12" ? "PM" : "AM"}</div>
-                           </div>
-                        </div>
-                        <div id="clock">
-                           <div className="time">
-                              <span id="hrs">{time.hrs}</span>
-                              :
-                              <span id="min">{time.min}</span>
-                              :
-                              <span id="sec">{time.sec}</span>
-                           </div>
-                           <div className="date">
-                              <span id="year">{date.year}</span>
-                              -
-                              <span id="month">{date.month}</span>
-                              -
-                              <span id="day-date">{date.currentDate}</span>
-                           </div>
-                        </div>
+                     <div className="other-options">
+                        
                      </div>
                   </div>
                </div>

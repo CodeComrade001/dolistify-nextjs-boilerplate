@@ -244,6 +244,16 @@
   border: none;
 }
 
+.missedIndicator {
+  background-color: red;
+  color: red;
+}
+
+.completeIndicator {
+  background-color: green;
+  color: green;
+}
+
 /* ANIMATION FRAMES */
 @keyframes movedown {
   0% {
