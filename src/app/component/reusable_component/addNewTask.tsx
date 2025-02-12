@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import fullTaskView from "../../styles/fullTaskView.module.css";
 import insertTask from "../backend_component/TaskBackend";
 
@@ -18,9 +18,9 @@ export default function AddNewTask({
    const [submitCondition, setSubmitCondition] = useState("Done");
    const [save, setSave] = useState(false);
    const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
-   const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task">("Personal Task");
+   const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "">("");
    const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated">("personal");
-   const [activeDashboardRoute, setActiveDashboardRoute] = useState<"upComing" | "high_priority" | "main" | "archived" | "time_deadline" | "date_deadline">("high_priority");
+   const [activeDashboardRoute, setActiveDashboardRoute] = useState<"upComing" | "high_priority" | "main" | "archived" | "time_deadline" | "date_deadline" | "">("");
    const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
    const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
    const [userDeadline, setUserDeadline] = useState<string | number>("")
@@ -82,7 +82,7 @@ export default function AddNewTask({
          console.log("Invalid index for completed or missed.");
       }
       if (e.key === "Enter") {
-         if (taskDetails.subtasks[index].description.trim() === "") return; 
+         if (taskDetails.subtasks[index].description.trim() === "") return;
 
          const newTask = { id: taskDetails.subtasks.length + 1, description: "" };
          const newStatus = { id: taskDetails.status.length + 1, completed: null, missed: null };
@@ -106,7 +106,7 @@ export default function AddNewTask({
       }));
    };
 
-   function dashboardRouteOptions(category: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" ) {
+   function dashboardRouteOptions(category: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "") {
       switch (category) {
          case "Personal Task":
             return {
@@ -132,6 +132,12 @@ export default function AddNewTask({
                activeDashboard: "repeated",
                activeRouteOptions: ["high_priority", "main", "archived", "time_deadline", "date_deadline"],
             }
+         case "":
+            return {
+               routeOptions: [],
+               activeDashboard: "",
+               activeRouteOptions: [],
+            }   
       }
    }
 
@@ -141,22 +147,18 @@ export default function AddNewTask({
       console.log("🚀 ~ handleDeadlineInput ~ userDate_time_deadline:", userDate_time_deadline)
    }
 
-   const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn)
-
-
    const handleOptionClick = (option: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") => {
       const dashboard = dashboardRouteOptions(option).activeDashboard;
-   
+
       if (dashboard !== "Time-bound Task") {
          setUserDeadline("");
       }
-   
+
       setDashboardBtn(option);
       setDashboard(option);
       setActiveDashboardBtn(dashboard as "personal" | "work" | "time_bound" | "repeated");
       setActiveSelection("none");
    };
-   
 
    async function insertIntoDB() {
       const dashboardBtn = activeDashboardBtn;
@@ -197,6 +199,8 @@ export default function AddNewTask({
          setSave(false);
       }
    }
+   const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
+
 
    return (
       <div className={fullTaskView.taskView_items}>
@@ -273,7 +277,7 @@ export default function AddNewTask({
                               key={route}
                               className={fullTaskView.dashboard_options}
                               onClick={() => {
-                                 const options = dashboardRouteOptions(dashboardBtn); // Ensure to fetch updated options
+                                 const options = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task"); // Ensure to fetch updated options
                                  const routeOption = options.activeRouteOptions[index]; // Index matches the button
                                  const dashboardRouteOption = options.routeOptions[index]
                                  setActiveDashboardRoute(routeOption as "high_priority" | "main" | "archived" | "upComing");
@@ -390,7 +394,7 @@ export default function AddNewTask({
          </div>
          <button
             className={fullTaskView.send}
-            onClick={() =>insertIntoDB()}// Button disabled while pending or saving
+            onClick={() => insertIntoDB()}// Button disabled while pending or saving
             type="submit"
          >
             {save ? "Submitting..." : submitCondition}

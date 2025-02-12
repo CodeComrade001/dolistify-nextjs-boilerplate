@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import helperScreenStyle from "../../styles/helperScreenStyle.module.css";
 
 export default function HelperBar() {
-   const [helperBarOpen, setHelperBarOpen] = useState<"error" | "success" | "warning" | "alert" | "message">("warning");
+   const [helperBarOpen] = useState<"error" | "success" | "warning" | "alert" | "message">("warning");
    const [isHovered, setIsHovered] = useState(false);
 
    function informationVerify(category: "error" | "success" | "warning" | "alert" | "message") {

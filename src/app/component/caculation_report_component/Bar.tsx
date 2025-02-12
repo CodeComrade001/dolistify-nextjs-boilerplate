@@ -28,19 +28,13 @@ export default function Bar({
    completeTaskValue,
    completeGoalValue,
    barLabelDay,
-}: barsProps): JSX.Element {
+}: barsProps) {
 
-   const [mousePosition, setMousePosition] = useState({ y: 0 });
    const [activeBar, setActiveBar] = useState(false);
    const [completeBar, setCompleteBar] = useState(false)
    const [missedBar, setMissedBar] = useState(false)
 
 
-   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
-      const y = event.clientY;
-
-      setMousePosition({ y });
-   }
 
    type BarType = "active" | "complete" | "missed";
 

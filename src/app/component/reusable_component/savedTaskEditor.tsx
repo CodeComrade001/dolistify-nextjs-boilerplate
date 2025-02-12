@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState} from "react";
+import React ,{ useEffect, useState} from "react";
 import editSavedTask from "../../styles/editSavedTask.module.css" ;
 import { showSavedTaskDetailView, updateTaskInformation } from "../backend_component/TaskBackend";
 
@@ -19,12 +19,12 @@ export default function EditSavedTask({
    taskId?: number | null;
    dashboardBtn: string;
    dashBoardRoute: string;
-}): JSX.Element {
+}) {
    const [savedTask, setSavedTask] = useState<savedTaskDataType>();
    const [editedTask, setEditedTask] = useState<savedTaskDataType>();
    const [savedTaskStatus, setSavedTaskStatus] = useState<string>("Update");
-   const [missedTask, setMissedTask] = useState<string>("");
-   const [completedTask, setCompletedTask] = useState<string>("");
+   const [ setMissedTask] = useState<string>("");
+   const [ setCompletedTask] = useState<string>("");
 
    const addNewTaskRow = (prevTask: savedTaskDataType | undefined, index: number): savedTaskDataType | undefined => {
       if (!prevTask) return undefined;
@@ -200,8 +200,6 @@ export default function EditSavedTask({
          setCompletedTask(editSavedTask.completeIndicator); // Correct!
       }
    }
-
-
 
    return (
       <>

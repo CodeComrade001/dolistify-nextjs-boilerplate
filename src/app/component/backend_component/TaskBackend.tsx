@@ -301,14 +301,11 @@ export async function showSavedTaskDetailView(id?: number, dashboardBtn?: string
 }
 
 export async function taskPositionRequirement(dashboardBtn: string, dashboardRoute: string) {
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-   console.log("🚀 ~ showSavedTaskSummaryView ~ dashboardBtnFormat:", dashboardBtnFormat);
-   console.log("🚀 ~ showSavedTaskSummaryView ~ tableRouteLabel:", dashboardRoute);
 
    // Matching table label and table route
    const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
+   if (!allowedDashboard.includes(dashboardBtn)) {
+      console.log(`Table not found or wrong table format: ${dashboardBtn}`);
       return false;
    }
 
@@ -322,10 +319,10 @@ export async function taskPositionRequirement(dashboardBtn: string, dashboardRou
    try {
       let taskQuery: string;
       if (dashboardRoute === "time_deadline" || dashboardRoute === "date_deadline") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtnFormat} WHERE user_id = 1 AND ${dashboardRoute} IS NOT NULL  ORDER BY timestamp ASC`
+         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = 1 AND ${dashboardRoute} IS NOT NULL  ORDER BY timestamp ASC`
 
       } else {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtnFormat} WHERE user_id = 1 AND ${dashboardRoute} = true  ORDER BY timestamp ASC`
+         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = 1 AND ${dashboardRoute} = true  ORDER BY timestamp ASC`
       }
 
       const taskResult = await client.query(taskQuery);

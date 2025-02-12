@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import barChartLabel from "../../styles/barChartLabel.module.css";
 
 interface BarChartLabelProps {
@@ -19,7 +19,7 @@ export default function BarsLabels({
    Value1,
    Value2,
    labelColor,
-}: BarChartLabelProps): JSX.Element {
+}: BarChartLabelProps) {
 
    return (
       <div className={barChartLabel.label_container}>

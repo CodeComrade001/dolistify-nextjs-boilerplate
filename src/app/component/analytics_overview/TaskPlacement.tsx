@@ -1,10 +1,25 @@
-"use client";
+"use server";
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
 export default async function taskPosition(dashboardBtn: string,dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
+   console.log("🚀 ~ taskPosition ~ taskPosition:", taskPosition)
+   const dashboardBtnFormat = dashboardBtn === "" ? "personal_task" : `${dashboardBtn}_task`;
+   const validatedDashboardRoute = dashboardRoute === "" ? "high_priority" : dashboardRoute;
+
+   const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
+   if (!allowedDashboard.includes(dashboardBtnFormat)) {
+      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
+      return false;
+   }
+
+   const allowedRoutes = ["completed", "high_priority", "archived", "missed", "main", "time_deadline", "date_deadline"]; // Add more valid column names if necessary
+   if (!allowedRoutes.includes(validatedDashboardRoute)) {
+      console.log(`Invalid column name: ${validatedDashboardRoute}`);
+      return false;
+   }
    try {
-      const result = await taskPositionRequirement(dashboardBtn,dashboardRoute);
+      const result = await taskPositionRequirement(dashboardBtnFormat,validatedDashboardRoute);
 
       if (!result) {
          console.log("Error fetching task");

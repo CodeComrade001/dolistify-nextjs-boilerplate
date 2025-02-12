@@ -17,13 +17,11 @@ interface savedTaskDataType {
    status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
 }
 
-export default function TaskDisplay({
 
-   editSavedTask,
+export default function TaskDisplay({
    dashboardBtn,
    dashboardRoute,
 }: {
-   editSavedTask: (taskId: number) => void;
    dashboardBtn: string;
    dashboardRoute: string;
 }) {
@@ -95,8 +93,6 @@ export default function TaskDisplay({
       }
    }
 
-
-
    function formatTimestamp(timestamp: string): string {
       return new Date(timestamp).toLocaleString("en-US", {
          weekday: "short",
@@ -158,6 +154,7 @@ export default function TaskDisplay({
       }
    }
 
+
    useEffect(() => {
       fetchTasks(dashboardBtn, dashboardRoute).then(() => setIsStylesReady(true));
    }, [fetchTasks, dashboardBtn, dashboardRoute]);
@@ -173,9 +170,6 @@ export default function TaskDisplay({
          fetchAllTask(userId, dashboardBtn, dashboardRoute)
       }
    }, [userId, dashboardBtn, dashboardRoute])
-
-
-
 
    return (
       <div className={containerClass}>
@@ -205,10 +199,13 @@ export default function TaskDisplay({
                                  className={taskDisplay.task_options}
                                  onClick={() => {
                                     setUserId(task.id)
-                                    editSavedTask(task.id)
+                                    // editSavedTask(task.id)
                                  }}
                               >
-                                 View
+                                 {/* <Link href={{
+                                     pathname: '/Update_Saved_task',
+                                     query: { param1: index, param2: 'dashboardBtn', param3: "dashboardRoute" },
+                                 }}> view</Link> */}
                               </button>
                               <button
                                  className={taskDisplay.task_options}
@@ -249,3 +246,6 @@ export default function TaskDisplay({
       </div>
    );
 }
+
+
+
