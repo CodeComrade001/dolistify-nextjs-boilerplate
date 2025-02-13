@@ -1,7 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import editSavedTask from "../../styles/editSavedTask.module.css";
+import editSavedTask from "../styles/editSavedTask.module.css";
 import { showSavedTaskDetailView, updateTaskInformation } from "../component/backend_component/TaskBackend";
+
+//...
+
 
 
 interface savedTaskDataType {
@@ -13,11 +16,11 @@ interface savedTaskDataType {
 export default function EditSavedTask({
   taskId,
   dashboardBtn,
-  dashBoardRoute,
+  dashboardRoute,
 }: {
   taskId: number;
   dashboardBtn: string;
-  dashBoardRoute: string;
+  dashboardRoute: string;
 }) {
   const [savedTask, setSavedTask] = useState<savedTaskDataType>();
   const [editedTask, setEditedTask] = useState<savedTaskDataType>();
@@ -79,7 +82,7 @@ export default function EditSavedTask({
       setSavedTaskStatus("Saving task...")
       const updatingId = taskId;
       const updatedTaskDetails = editedTask;
-      const updatingTask = await updateTaskInformation(dashboardBtn, dashBoardRoute, updatedTaskDetails, updatingId)
+      const updatingTask = await updateTaskInformation(dashboardBtn, dashboardRoute, updatedTaskDetails, updatingId)
       if (updatingTask) {
         setSavedTaskStatus("Updating successful");
       }
@@ -167,8 +170,9 @@ export default function EditSavedTask({
   useEffect(() => {
     async function savedTaskQuery() {
       try {
+
         if (taskId != null) {
-          const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashBoardRoute);
+          const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
           console.log("🚀 ~ savedTaskQuery ~ savedTaskArray:", savedTaskArray)
 
           const taskFormat = {
@@ -189,7 +193,7 @@ export default function EditSavedTask({
     }
 
     savedTaskQuery();
-  }, [taskId, dashboardBtn, dashBoardRoute]);
+  }, [taskId, dashboardBtn, dashboardRoute]);
 
   function taskIndicator(receivedClassName: "missedTaskIndicator" | "completeTaskIndicator") {
     if (receivedClassName === "missedTaskIndicator") {

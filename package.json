@@ -3,62 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "classnames": "^2.5.1",
-    "dotenv": "^16.4.5",
-    "next": "15.1.6",
-    "openmeteo": "^1.1.4",
-    "pg": "^8.13.1",
+    "dotenv": "^16.4.7",
+    "next": "15.1.7",
+    "pg": "^8.13.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/node": "^22.13.1",
-    "@types/pg": "^8.11.11",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.1.6",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "eslint-config-next": "15.1.7",
     "typescript": "^5"
-  },
-  "description": "A Task Management App",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dinero203/Dolistify.git"
-  },
-  "keywords": [
-    "task",
-    "todo",
-    "todolist",
-    "task",
-    "management",
-    "scheduling",
-    "notepad",
-    "planner",
-    "notes",
-    "workflow",
-    "list",
-    "remainder",
-    "project",
-    "management",
-    "organiser",
-    "app",
-    "free",
-    "app"
-  ],
-  "author": "Dinero",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/dinero203/Dolistify/issues"
-  },
-  "homepage": "https://github.com/dinero203/Dolistify#readme"
+  }
 }

@@ -3,42 +3,42 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Logo from "../../../public/logo/logo.png";
 import Link from 'next/link';
-// import getWeatherInfo from '../api/route';
+import getWeatherInfo from '../api/route';
 
-// interface WeatherConditionDataType {
-//    latitude: number;
-//    longitude: number;
-//    generationtime_ms: number;
-//    utc_offset_seconds: number;
-//    timezone: string;
-//    timezone_abbreviation: string;
-//    elevation: number;
-//    current_units: {
-//       time: string;
-//       interval: string;
-//       temperature_2m: string;
-//       apparent_temperature: string;
-//       precipitation: string;
-//       weather_code: string;
-//       cloud_cover: string;
-//       wind_speed_10m: string;
-//    };
-//    current: {
-//       time: string;
-//       interval: number;
-//       temperature_2m: number;
-//       apparent_temperature: number;
-//       precipitation: number;
-//       weather_code: number;
-//       cloud_cover: number;
-//       wind_speed_10m: number;
-//    };
-//    weatherCondition: string;
-// }
+interface WeatherConditionDataType {
+   latitude: number;
+   longitude: number;
+   generationtime_ms: number;
+   utc_offset_seconds: number;
+   timezone: string;
+   timezone_abbreviation: string;
+   elevation: number;
+   current_units: {
+      time: string;
+      interval: string;
+      temperature_2m: string;
+      apparent_temperature: string;
+      precipitation: string;
+      weather_code: string;
+      cloud_cover: string;
+      wind_speed_10m: string;
+   };
+   current: {
+      time: string;
+      interval: number;
+      temperature_2m: number;
+      apparent_temperature: number;
+      precipitation: number;
+      weather_code: number;
+      cloud_cover: number;
+      wind_speed_10m: number;
+   };
+   weatherCondition: string;
+}
 
 
 interface DashboardPageProps {
-   profileImage: string;
+   profileImage: any;
    profileDetails: any;
    userTask: any ;
    userDeletedFiles: any;
@@ -57,36 +57,37 @@ export default function DashboardPage({
    userTaskQueryPath,
 }: DashboardPageProps) {
    const [theme, setTheme] = useState('light');
-   // const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number, timeZone: string } | null>(null);
-   // const [weatherCondition, setWeatherCondition] = useState<WeatherConditionDataType | null>();
+   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number, timeZone: string } | null>(null);
+   const [weatherCondition, setWeatherCondition] = useState<WeatherConditionDataType | null>();
    const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "completed" | "missed" | "repeated">("personal");
    const [activeDashboardBtnRoute, setActiveDashboardBtnRoute] = useState("high_priority");
+   
 
    useEffect(() => {
       // Check localStorage for user's theme preference
       const savedTheme = localStorage.getItem('theme');
-      // const options: PositionOptions = {
-      //    enableHighAccuracy: true,
-      //    timeout: 5000,
-      //    maximumAge: 0,
-      // };
+      const options: PositionOptions = {
+         enableHighAccuracy: true,
+         timeout: 5000,
+         maximumAge: 0,
+      };
 
-      // function success(pos: GeolocationPosition): void {
-      //    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      //    const { latitude, longitude } = pos.coords;
-      //    setCoordinates({ latitude, longitude, timeZone });
-      //    console.log(`Latitude: ${latitude}, Longitude: ${longitude}, TimeZone: ${timeZone}`);
-      // }
+      function success(pos: GeolocationPosition): void {
+         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+         const { latitude, longitude } = pos.coords;
+         setCoordinates({ latitude, longitude, timeZone });
+         console.log(`Latitude: ${latitude}, Longitude: ${longitude}, TimeZone: ${timeZone}`);
+      }
 
-      // function error(err: GeolocationPositionError): void {
-      //    console.warn(`ERROR(${err.code}): ${err.message}`);
-      // }
+      function error(err: GeolocationPositionError): void {
+         console.warn(`ERROR(${err.code}): ${err.message}`);
+      }
 
-      // if (navigator.geolocation) {
-      //    navigator.geolocation.getCurrentPosition(success, error, options);
-      // } else {
-      //    console.warn("Geolocation is not supported by this browser.");
-      // }
+      if (navigator.geolocation) {
+         navigator.geolocation.getCurrentPosition(success, error, options);
+      } else {
+         console.warn("Geolocation is not supported by this browser.");
+      }
 
       if (savedTheme) {
          setTheme(savedTheme);
@@ -94,37 +95,37 @@ export default function DashboardPage({
 
    }, []);
 
-   // useEffect(() => {
-   //    const fetchWeatherData = async () => {
-   //       if (coordinates) {
-   //          const queryData = {
-   //             latitude: coordinates.latitude,
-   //             longitude: coordinates.longitude,
-   //             current: ["temperature_2m", "apparent_temperature", "precipitation", "weather_code", "cloud_cover", "wind_speed_10m",],
-   //             timezone: coordinates.timeZone,
-   //          };
+   useEffect(() => {
+      const fetchWeatherData = async () => {
+         if (coordinates) {
+            const queryData = {
+               latitude: coordinates.latitude,
+               longitude: coordinates.longitude,
+               current: ["temperature_2m", "apparent_temperature", "precipitation", "weather_code", "cloud_cover", "wind_speed_10m",],
+               timezone: coordinates.timeZone,
+            };
 
-   //          try {
-   //             const weatherData = await getWeatherInfo(queryData); // Await the promise
-   //             if (weatherData) {
-   //                setWeatherCondition(weatherData); // Set the resolved value
-   //             }
-   //             console.log("Weather Data:", weatherData);
-   //          } catch (error) {
-   //             console.error("Error fetching weather data:", error);
-   //          }
-   //       }
-   //    };
+            try {
+               const weatherData = await getWeatherInfo(queryData); // Await the promise
+               if (weatherData) {
+                  setWeatherCondition(weatherData); // Set the resolved value
+               }
+               console.log("Weather Data:", weatherData);
+            } catch (error) {
+               console.error("Error fetching weather data:", error);
+            }
+         }
+      };
 
-   //    fetchWeatherData(); // Call the async function
-   // }, [coordinates]);
+      fetchWeatherData(); // Call the async function
+   }, [coordinates]);
 
    const handleClick = (dashboardBtn: string, dashboardRoute: string) => {
       console.log(`Dashboard page: ${dashboardBtn}, Dashboard route: ${dashboardRoute}`);
       userTaskQueryPath(dashboardBtn, dashboardRoute);
    };
 
-   
+
    function ThemeChange() {
       const newTheme = theme === 'light' ? 'dark' : 'light';
       setTheme(newTheme);
@@ -286,22 +287,23 @@ export default function DashboardPage({
                                  }}
                                  className={activeDashboardBtnRoute === dashboardRouteOptionsQuery.activeRouteOptions[index] ? "activeBtn" : ""}
                               >
-                                 {name} {/* Render the button label */}
+                                 {name}
                               </button>
                            ))}
+
                            <button
                               onClick={(e) => {
                                  e.stopPropagation();
                               }}
                            >
-                              <Link href="/Add_New_Task">New Task</Link> 
+                              <Link href="/Add_New_Task">New Task</Link>
                            </button>
                         </div>
                      </div>
                   </div>
                   <div className="second-sub-header">
                      <div className="other-options">
-                        
+
                      </div>
                   </div>
                </div>

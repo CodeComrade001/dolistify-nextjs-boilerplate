@@ -1,9 +1,10 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import taskDisplay from "../../styles/taskDisplay.module.css";
-import { showSavedTaskDetailView, showSavedTaskSummaryView, TaskAttributes } from "../backend_component/TaskBackend";
+import { showSavedTaskSummaryView, TaskAttributes } from "../backend_component/TaskBackend";
 import taskPosition from "../analytics_overview/TaskPlacement";
 import classNames from "classnames";
+import Link from "next/link";
 
 interface TaskQueryResult {
    id: number;
@@ -16,7 +17,6 @@ interface savedTaskDataType {
    subtasks: Array<{ id: number; description: string }>;
    status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
 }
-
 
 export default function TaskDisplay({
    dashboardBtn,
@@ -70,28 +70,9 @@ export default function TaskDisplay({
       }
    }, [setTaskPlacement]);
 
-   async function fetchAllTask(userId: number, dashboardBtn: string, dashboardRoute: string) {
-      try {
-         if (userId !== null) {
-            const allTaskResult = await showSavedTaskDetailView(userId, dashboardBtn, dashboardRoute);
-            // Ensure the status is always an array.
-            if (allTaskResult && allTaskResult.status && !Array.isArray(allTaskResult.status)) {
-               allTaskResult.status = [allTaskResult.status];
-            }
 
-            const updatedTaskFormat = {
-               title: allTaskResult.title,
-               subtasks: JSON.parse(allTaskResult.subtasks),
-               status: JSON.parse(allTaskResult.status),
-            }
 
-            setUserFullTask(updatedTaskFormat);
-            console.log("🚀 ~ fetchAllTask ~ updatedTaskFormat:", updatedTaskFormat)
-         }
-      } catch (error: unknown) {
-         console.log("error fetching full task in task preview", error);
-      }
-   }
+
 
    function formatTimestamp(timestamp: string): string {
       return new Date(timestamp).toLocaleString("en-US", {
@@ -154,7 +135,6 @@ export default function TaskDisplay({
       }
    }
 
-
    useEffect(() => {
       fetchTasks(dashboardBtn, dashboardRoute).then(() => setIsStylesReady(true));
    }, [fetchTasks, dashboardBtn, dashboardRoute]);
@@ -163,13 +143,6 @@ export default function TaskDisplay({
       [taskDisplay.container_loader]: !isStylesReady,
       [taskDisplay.container]: isStylesReady,
    });
-
-   useEffect(() => {
-      if (userId !== null) {
-         console.log("fetching task preview full task")
-         fetchAllTask(userId, dashboardBtn, dashboardRoute)
-      }
-   }, [userId, dashboardBtn, dashboardRoute])
 
    return (
       <div className={containerClass}>
@@ -199,13 +172,14 @@ export default function TaskDisplay({
                                  className={taskDisplay.task_options}
                                  onClick={() => {
                                     setUserId(task.id)
-                                    // editSavedTask(task.id)
                                  }}
                               >
-                                 {/* <Link href={{
-                                     pathname: '/Update_Saved_task',
-                                     query: { param1: index, param2: 'dashboardBtn', param3: "dashboardRoute" },
-                                 }}> view</Link> */}
+                                 <Link href={{
+                                    pathname: '/Update_Saved_Task',
+                                    query: { param1: task.id, param2: dashboardBtn, param3: dashboardRoute },
+                                 }}>
+                                    View
+                                 </Link>
                               </button>
                               <button
                                  className={taskDisplay.task_options}
@@ -246,6 +220,3 @@ export default function TaskDisplay({
       </div>
    );
 }
-
-
-
