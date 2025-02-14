@@ -3,10 +3,6 @@ import React, { useEffect, useState } from "react";
 import editSavedTask from "../styles/editSavedTask.module.css";
 import { showSavedTaskDetailView, updateTaskInformation } from "../component/backend_component/TaskBackend";
 
-//...
-
-
-
 interface savedTaskDataType {
   title: string;
   subtasks: Array<{ id: number; description: string }>;
@@ -18,15 +14,16 @@ export default function EditSavedTask({
   dashboardBtn,
   dashboardRoute,
 }: {
-  taskId: number;
-  dashboardBtn: string;
-  dashboardRoute: string;
+  taskId: number,
+  dashboardBtn: string,
+  dashboardRoute: string,
 }) {
   const [savedTask, setSavedTask] = useState<savedTaskDataType>();
   const [editedTask, setEditedTask] = useState<savedTaskDataType>();
   const [savedTaskStatus, setSavedTaskStatus] = useState<string>("Update");
-  const [setMissedTask] = useState<string>("");
-  const [setCompletedTask] = useState<string>("");
+  const [missedTask, setMissedTask] = useState("");
+  const [completedTask, setCompletedTask] = useState("");
+
 
   const addNewTaskRow = (prevTask: savedTaskDataType | undefined, index: number): savedTaskDataType | undefined => {
     if (!prevTask) return undefined;
@@ -166,24 +163,30 @@ export default function EditSavedTask({
     setSavedTask((prevTask) => missedTaskRow(prevTask, index, indicator))
     setEditedTask((prevTask) => missedTaskRow(prevTask, index, indicator))
   };
-  // Fetch and set task data
+
   useEffect(() => {
+    let isMounted = true;
+
     async function savedTaskQuery() {
       try {
-
         if (taskId != null) {
           const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
-          console.log("🚀 ~ savedTaskQuery ~ savedTaskArray:", savedTaskArray)
+          if (!isMounted) return;
 
-          const taskFormat = {
-            ...savedTaskArray,
-            subtasks: JSON.parse(savedTaskArray.subtasks),
-            status: JSON.parse(savedTaskArray.status),
-          };
-          console.log("🚀 ~ savedTaskQuery ~ taskFormat:", taskFormat)
+          console.log("🚀 ~ savedTaskQuery ~ savedTaskArray:", savedTaskArray);
+          if (savedTaskArray == undefined) {
+            console.log("No saved task found");
+          } else {
+            const taskFormat = {
+              ...savedTaskArray,
+              subtasks: JSON.parse(savedTaskArray.subtasks),
+              status: JSON.parse(savedTaskArray.status),
+            };
+            console.log("🚀 ~ savedTaskQuery ~ taskFormat:", taskFormat);
 
-          setSavedTask(taskFormat); // Save the processed task
-          setEditedTask(taskFormat);
+            setSavedTask(taskFormat); // Save the processed task
+            setEditedTask(taskFormat);
+          }
         } else {
           console.warn("Invalid taskId provided. Skipping query.");
         }
@@ -193,7 +196,12 @@ export default function EditSavedTask({
     }
 
     savedTaskQuery();
+
+    return () => {
+      isMounted = false;
+    };
   }, [taskId, dashboardBtn, dashboardRoute]);
+
 
   function taskIndicator(receivedClassName: "missedTaskIndicator" | "completeTaskIndicator") {
     if (receivedClassName === "missedTaskIndicator") {
@@ -206,7 +214,7 @@ export default function EditSavedTask({
   return (
     <>
       {
-        savedTask &&
+        (savedTask && taskId !== undefined) &&
         (
           <div key={taskId} className={editSavedTask.container}>
             {/* Task Title */}

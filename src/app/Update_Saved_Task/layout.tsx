@@ -2,53 +2,54 @@
 
 import React, { useEffect, useState } from "react";
 import EditSavedTask from "./page";
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation';
 
 export default function NewTaskLayout() {
   const [taskId, setTaskId] = useState<number>();
   const [taskQueryPath, setTaskQueryPath] = useState<{ dashboardBtn: string, dashboardRoute: string }>({
     dashboardBtn: "",
     dashboardRoute: "",
-  })
-  const router = useRouter()
-  const { param1, param2, param3 } = router.query;
+  });
+  
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const savedTaskQuery = async () => {
+      const param1 = searchParams.get("param1");
+      const param2 = searchParams.get("param2");
+      const param3 = searchParams.get("param3");
+
       try {
         if (param1 && param2 && param3) {
-          console.log("🚀 ~ savedTaskQuery ~ param3:", param3)
-          console.log("🚀 ~ savedTaskQuery ~ param2:", param2)
-          console.log("🚀 ~ savedTaskQuery ~ param1:", param1)
-          setTaskId(parseInt(param1 as string));
+          console.log("🚀 ~ param3:", param3);
+          console.log("🚀 ~ param2:", param2);
+          console.log("🚀 ~ param1:", param1);
+          setTaskId(parseInt(param1));
           setTaskQueryPath({
-            dashboardBtn: param2 as string,
-            dashboardRoute: param3 as string,
+            dashboardBtn: param2,
+            dashboardRoute: param3,
           });
         } else {
-          console.log("error fetching params for saved task🚀 ~ savedTaskQuery ~ param3:", param3)
-          console.log("error fetching params for saved task🚀 ~ savedTaskQuery ~ param1:", param1)
-          console.log("error fetching params for saved task🚀 ~ savedTaskQuery ~ param2:", param2)
+          console.log("Error fetching params:", { param1, param2, param3 });
         }
-
-      } catch (error: unknown) {
-        console.error("error fetching params: ", error)
+      } catch (error) {
+        console.error("Error fetching params:", error);
       }
-    }
+    };
     savedTaskQuery();
-  }, [param1, param2, param3]);
+  }, [searchParams]);
 
   return (
     <section className="body_section">
-      {taskId && taskQueryPath.dashboardBtn && taskQueryPath.dashboardRoute? (
+      {taskId && taskQueryPath.dashboardBtn && taskQueryPath.dashboardRoute ? (
         <EditSavedTask
           taskId={taskId}
           dashboardBtn={taskQueryPath.dashboardBtn}
           dashboardRoute={taskQueryPath.dashboardRoute}
         />
       ) : (
-        <p>Loading...</p>
+        <p> fetching task animation Loading...</p>
       )}
     </section>
-  )
+  );
 }
