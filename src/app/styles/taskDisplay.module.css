@@ -42,11 +42,16 @@
   flex: 1;
 }
 
+.body_section {
+  height: 100%;
+  width: 100%;
+}
+
 .task_list_items {
   display: grid;
   grid-template-columns: repeat(24, 1fr);
   grid-template-rows: repeat(24, 1fr);
-  height: 100%;
+  height: inherit;
   padding: 5px;
 }
 
@@ -60,8 +65,8 @@
 .new_task_content {
   background-color: yellow;
   border-radius: 10px;
-  width: 200px;
-  height: 60px;
+  width: 250px;
+  height: 63px;
   position: absolute;
   display: flex;
   flex-direction: row;
@@ -75,7 +80,8 @@
 }
 
 .task_date {
-  font-size: 1.1rem;
+  font-size: 1.2em;
+  font-weight:bold;
   margin-bottom: 10px;
   display: flex;
   justify-content: center;
@@ -89,7 +95,8 @@
   align-items: center;
   flex-wrap: wrap;
   flex: 1;
-  font-size: 1.2rem;
+  font-size: 1.2em;
+  font-weight:bold;
 }
 
 .task_date,
@@ -106,18 +113,25 @@
 
 .top_row {
   display: flex;
-  gap: 5px;
+  gap: 3px;
   flex-direction: row;
 }
 
 .bottom_row {
-  gap: 5px;
+  gap: 3px;
   display: flex;
   flex-direction: row;
 }
 
+.top_row > button,
+.bottom_row > button {
+ gap:3px;
+}
+
 .task_options {
+  font-size:1em;
   border: none;
-  background-color: #98ff98;
+  border-radius: 9px;
   flex: 1;
+  gap:3px;
 }

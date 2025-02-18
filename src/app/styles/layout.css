@@ -1,6 +1,37 @@
+/* TARGETING ALL BUTTON ELEMENT */
+button {
+  color: #fff;
+  background-color: #38d2d2;
+  background-image: radial-gradient(
+      93% 87% at 87% 89%,
+      rgba(0, 0, 0, 0.23) 0%,
+      transparent 86.18%
+    ),
+    radial-gradient(
+      66% 66% at 26% 20%,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0) 69.79%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  box-shadow: inset -3px -3px 9px rgba(255, 255, 255, 0.25),
+    inset 0px 3px 9px rgba(255, 255, 255, 0.3),
+    inset 0px 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0px -8px 36px rgba(0, 0, 0, 0.3),
+    inset 0px 1px 5px rgba(255, 255, 255, 0.6), 2px 19px 31px rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 16px;
+  border: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+
+  cursor: pointer;
+}
+
 /* WHITE THEME BACKGROUND STYLES */
 .dashboard-body-whiteTheme {
-  background-color: whitesmoke;
+  background-color: #fffff0;
 }
 
 .dashboard-body-whiteTheme .calender-year {
@@ -102,7 +133,7 @@
 }
 
 .side-nav-container-blackTheme button {
-  background-color: #98ff98;
+  /* background-color: #98ff98; */
 }
 
 .side-nav-container-blackTheme .file-import {
@@ -121,12 +152,11 @@
 }
 
 .dashboard-body-blackTheme > .full-body button {
-  background-color: #98ff98;
+  background-color: #e7e7e7;
   border: none;
 }
 
 .dashboard-body-whiteTheme > .full-body button {
-  background-color: #98ff98;
   border: none;
 }
 
@@ -239,15 +269,15 @@ button:hover .calender-year {
 /* HEADER CSS STYLES--stop */
 
 /* SUB-HEADER STYLES--START */
-
 .sub-header {
   display: grid;
   grid-template-columns: 80% 20%;
-  grid-template-rows: 1fr;
+  grid-template-rows: 100%;
 }
 
 .route-headlings {
   display: flex;
+  flex: 1;
   flex-direction: row;
   justify-content: center;
 }
@@ -318,7 +348,7 @@ button:hover .calender-year {
   -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
   box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
   color: whitesmoke;
-} 
+}
 
 .current-time {
   display: flex;
@@ -432,76 +462,14 @@ button:hover .calender-year {
 }
 
 .task {
-  display: grid;
-  grid-template-columns: 1% 98% 1%;
-  grid-template-rows: 4% 92% 4%;
   height: 100%;
-}
-
-/* CREATING MY  BOARD FRAME */
-
-.top-frame {
-  grid-column: span 3;
-  display: flex;
-  flex-direction: row;
-  background: linear-gradient(to right, #8b4513, #a0522d);
-}
-
-.top-frame > h1 {
-  flex: 1;
-  font-size: 1.2rem;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  margin: 0px;
-}
-
-.left-frame {
-  grid-row: 2 3;
-  grid-column: 1;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(to bottom, #8b4513, #a0522d);
-}
-
-.right-frame {
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(to bottom, #8b4513, #a0522d);
-}
-
-.bottom-frame {
-  grid-row: 3 4;
-  background: linear-gradient(to right, #8b4513, #a0522d);
-  grid-column: span 3;
-  display: flex;
-  flex-direction: row;
-}
-
-.topLeft-top {
-  clip-path: polygon(100% 0, 0 0, 100% 100%);
-  background: linear-gradient(to right, #8b4513, #a0522d);
-}
-
-.frame-LeftBottom {
-  background: linear-gradient(to right, #8b4513, #a0522d);
-  clip-path: polygon(0 0, 0% 100%, 100% 100%);
-}
-
-.left-frame > div {
-  flex: 1;
-  text-align: center;
-  align-content: flex-end;
-  font-size: 16px;
 }
 
 .task-list {
   grid-row: 2;
   grid-column: 2;
-  background: #b28b67;
-  box-shadow: inset 7px 7px 14px #6e5640, inset -7px -7px 14px #f6c08e;
+  height: 100%;
 }
-
 
 /* TASK CONTAINER CSS STYLES--START */
 
@@ -771,7 +739,7 @@ button:hover .calender-year {
   padding: 5px 10px;
   margin: 0px;
   border-radius: 10px;
-  box-shadow: 0px 0px 9px -2px rgba(0,0,0,1.5);
+  box-shadow: 0px 0px 9px -2px rgba(0, 0, 0, 1.5);
 }
 
 .date-right {
@@ -782,7 +750,7 @@ button:hover .calender-year {
   width: fit-content;
   padding: 5px 10px;
   border-radius: 10px;
-  box-shadow: 0px 0px 9px -2px rgba(0,0,0,1.5);
+  box-shadow: 0px 0px 9px -2px rgba(0, 0, 0, 1.5);
 }
 
 .date-left > svg,
@@ -795,7 +763,9 @@ button:hover .calender-year {
   font-size: 1.1rem;
   font-weight: bolder;
   flex: 1;
-  height: fit-content;
+  height: 40px;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -804,8 +774,16 @@ button:hover .calender-year {
   width: fit-content;
 }
 
-.fulldate sup {
-  margin-bottom: 10px;
+.fulldate > input {
+  font-weight: bold;
+  height: 35px;
+  padding: 0;
+  margin: 0;
+  font-size: 1.2em;
+  border: none;
+}
+
+.fulldate > input:focus {
 }
 
 .calender-year {
@@ -852,10 +830,9 @@ button:hover .calender-year {
   display: flex;
   flex-direction: row;
   align-items: center;
-  background-color: #98ff98;
 }
 
-#myDropdown .activeBtn{
+#myDropdown .activeBtn {
   background-image: linear-gradient(to right, green, yellow);
   -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
   box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
@@ -928,7 +905,6 @@ button:hover .calender-year {
   width: 50px;
   border-radius: 50%;
   border: none;
-  background-color: #98ff98;
 }
 
 .file-import-button > svg {

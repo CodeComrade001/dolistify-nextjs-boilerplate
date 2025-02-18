@@ -10,7 +10,7 @@ interface newTaskDataType {
   status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
 }
 
-export default function AddNewTask( ) {
+export default function AddNewTask() {
   const [submitCondition, setSubmitCondition] = useState("Done");
   const [save, setSave] = useState(false);
   const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
@@ -199,201 +199,212 @@ export default function AddNewTask( ) {
 
 
   return (
-    <div className={fullTaskView.taskView_items}>
-      <div className={fullTaskView.taskHeader}>
-        <div className={fullTaskView.taskSelector}>
-          <div className={fullTaskView.dashboard}>
-            <button
-              className={fullTaskView.dashboard_group_item}
-              onClick={() => handleSelection("dashboardGroup")}
-            >
-              <div className={fullTaskView.dashboard_selector}>{dashboard}</div>
-              <div className={fullTaskView.selector_icon}>
-                <svg
-                  height="20"
-                  width="20"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <g id="svgBackground" strokeWidth="0"></g>
-                  <g id="svgTracer" strokeLinecap="round" strokeLinejoin="round"></g>
-                  <g id="iconCarrier">
-                    <path
-                      d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z"
-                      fill="#000000"
-                    />
-                  </g>
-                </svg>
-              </div>
-            </button>
-            {activeSelection === "dashboardGroup" && (
-              <div className={fullTaskView.group_selector_container}>
-                {["Personal Task", "Work Task", "Time-bound Task", "Repeated Task"].map((option) => (
-                  <button
-                    key={option}
-                    className={fullTaskView.dashboard_options}
-                    onClick={() => handleOptionClick(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task")}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            )}
+    <div className={fullTaskView.container}>
+      <div className={fullTaskView.paper_folded_edge}>
+        <div className={fullTaskView.paper_first_folded}></div>
+        <div className={fullTaskView.paper_second_folded}></div>
+      </div>
+      <div className={fullTaskView.container_items}>
+        <div className={fullTaskView.clip_container}>
+          <div className={fullTaskView.clip_container_items}>
+            <div className={fullTaskView.clip_top_section}>
+              <div className={fullTaskView.clip_top_section_circle}></div>
+            </div>
+            <div className={fullTaskView.clip_middle_section}>
+            </div>
+            <div className={fullTaskView.clip_base}></div>
           </div>
-          {/* <input type="time" name="" /> */}
-          {/* <button className={fullTaskView.taskOptions_items}>Timer % Date</button> */}
-          <div className={fullTaskView.dashboard_route}>
-            <button
-              className={fullTaskView.dashboard_route_items}
-              onClick={() => handleSelection("dashboardRoute")}
-            >
-              <div className={fullTaskView.dashboard_selector}>{dashboardRoute}</div>
-              <div className={fullTaskView.selector_icon}>
-                <svg
-                  height="20"
-                  width="20"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <g id="svgBackground" strokeWidth="0"></g>
-                  <g id="svgTracer" strokeLinecap="round" strokeLinejoin="round"></g>
-                  <g id="iconCarrier">
-                    <path
-                      d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z"
-                      fill="#000000"
-                    />
-                  </g>
-                </svg>
+        </div>
+        <div className={fullTaskView.taskView_items}>
+          <div className={fullTaskView.taskHeader}>
+            <div className={fullTaskView.taskSelector}>
+              <div className={fullTaskView.dashboard}>
+                <button
+                  className={fullTaskView.dashboard_group_item}
+                  onClick={() => handleSelection("dashboardGroup")}
+                >
+                  <div className={fullTaskView.dashboard_selector}>{dashboard}</div>
+                  <div className={fullTaskView.selector_icon}>
+                    <svg
+                      height="20"
+                      width="20"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <g id="svgBackground" strokeWidth="0"></g>
+                      <g id="svgTracer" strokeLinecap="round" strokeLinejoin="round"></g>
+                      <g id="iconCarrier">
+                        <path
+                          d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z"
+                          fill="#000000"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </button>
+                {activeSelection === "dashboardGroup" && (
+                  <div className={fullTaskView.group_selector_container}>
+                    {["Personal Task", "Work Task", "Time-bound Task", "Repeated Task"].map((option) => (
+                      <button
+                        key={option}
+                        className={fullTaskView.dashboard_options}
+                        onClick={() => handleOptionClick(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task")}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </button>
-            {activeSelection === "dashboardRoute" && (
-              <div className={fullTaskView.route_selector_container}>
-                {dashboardOptionsQuery.routeOptions.map((route, index) => (
-                  <button
-                    key={route}
-                    className={fullTaskView.dashboard_options}
-                    onClick={() => {
-                      const options = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task"); // Ensure to fetch updated options
-                      const routeOption = options.activeRouteOptions[index]; // Index matches the button
-                      const dashboardRouteOption = options.routeOptions[index]
-                      setActiveDashboardRoute(routeOption as "high_priority" | "main" | "archived" | "upComing");
-                      setDashboardRoute(dashboardRouteOption as "high_priority Task" | "main Task" | "Deadline Task" | "archived Task");
-                      setActiveSelection("none");
-                    }}
-                  >
-                    {route}
-                  </button>
-                ))}
+              {/* <input type="time" name="" /> */}
+              {/* <button className={fullTaskView.taskOptions_items}>Timer % Date</button> */}
+              <div className={fullTaskView.dashboard_route}>
+                <button
+                  className={fullTaskView.dashboard_route_items}
+                  onClick={() => handleSelection("dashboardRoute")}
+                >
+                  <div className={fullTaskView.dashboard_selector}>{dashboardRoute}</div>
+                  <div className={fullTaskView.selector_icon}>
+                    <svg
+                      height="20"
+                      width="20"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <g id="svgBackground" strokeWidth="0"></g>
+                      <g id="svgTracer" strokeLinecap="round" strokeLinejoin="round"></g>
+                      <g id="iconCarrier">
+                        <path
+                          d="M8.00003 8.1716L3.41424 3.58582L0.585815 6.41424L8.00003 13.8285L15.4142 6.41424L12.5858 3.58582L8.00003 8.1716Z"
+                          fill="#000000"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </button>
+                {activeSelection === "dashboardRoute" && (
+                  <div className={fullTaskView.route_selector_container}>
+                    {dashboardOptionsQuery.routeOptions.map((route, index) => (
+                      <button
+                        key={route}
+                        className={fullTaskView.dashboard_options}
+                        onClick={() => {
+                          const options = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task"); // Ensure to fetch updated options
+                          const routeOption = options.activeRouteOptions[index]; // Index matches the button
+                          const dashboardRouteOption = options.routeOptions[index]
+                          setActiveDashboardRoute(routeOption as "high_priority" | "main" | "archived" | "upComing");
+                          setDashboardRoute(dashboardRouteOption as "high_priority Task" | "main Task" | "Deadline Task" | "archived Task");
+                          setActiveSelection("none");
+                        }}
+                      >
+                        {route}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+              {activeDashboardRoute === "date_deadline" && (
+                <input
+                  type="date"
+                  required
+                  className={fullTaskView.date_deadline}
+                  placeholder="Time Timeline"
+                  value={userDeadline}
+                  onChange={(e) => handleDeadlineInput(e)}
+                />
+              )}
+              {activeDashboardRoute === "time_deadline" && (
+                <input
+                  onChange={(e) => handleDeadlineInput(e)}
+                  className={fullTaskView.time_deadline}
+                  type="time"
+                  placeholder="Date Timeline"
+                  value={userDeadline}
+                />
+              )}
+              <input
+                onChange={handleTitleChange}
+                type="text"
+                placeholder="Enter a title for your task"
+                value={taskDetails.title}
+                className={fullTaskView.task_title_input}
+              />
+              <button
+                className={fullTaskView.taskOptions_items}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                close
+              </button>
+            </div>
           </div>
-          {activeDashboardRoute === "date_deadline" && (
-            <input
-              type="date"
-              required
-              className={fullTaskView.date_deadline}
-              placeholder="Time Timeline"
-              value={userDeadline}
-              onChange={(e) => handleDeadlineInput(e)}
-            />
-          )}
-          {activeDashboardRoute === "time_deadline" && (
-            <input
-              onChange={(e) => handleDeadlineInput(e)}
-              className={fullTaskView.time_deadline}
-              type="time"
-              placeholder="Date Timeline"
-              value={userDeadline}
-            />
-          )}
-          <input
-            onChange={handleTitleChange}
-            type="text"
-            placeholder="Enter a title for your task"
-            value={taskDetails.title}
-            className={fullTaskView.task_title_input}
-          />
+          <div className={fullTaskView.grid_section}>
+            <table className={fullTaskView.task_table}>
+              <tbody className={fullTaskView.table_body}>
+                {taskDetails.subtasks.map((row, index) => (
+                  <tr key={row.id} className={fullTaskView.content}>
+                    <th className={fullTaskView.mark}>
+                      <div className={fullTaskView.taskCount}> {index + 1} </div>
+                    </th>
+                    <td
+                      className={fullTaskView.user_text}
+                    >
+                      <input
+                        required
+                        type="text"
+                        value={row.description}
+                        onChange={(e) => handleInputChange(e, index)}
+                        onKeyPress={(e) => addExtraInputColumn(e, index)}
+                        className={fullTaskView.user_input}
+                      />
+                    </td>
+                    <td
+                      className={fullTaskView.user_delete}
+                      onClick={() => { deleteRow(index) }}
+                    >
+                      <button
+                        title="remove task"
+                      >
+                        <svg
+                          viewBox="0 0 512 512"
+                          version="1.1"
+                          width="20"
+                          height="20"
+                          xmlns="http://www.w3.org/2000/svg"
+                          xmlnsXlink="http://www.w3.org/1999/xlink"
+                          fill="#ff0303"
+                        >
+                          <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                          <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                          <g id="SVGRepo_iconCarrier">
+                            <title>error-filled</title>
+                            <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                              <g id="add" fill="#ff0303" transform="translate(42.666667, 42.666667)">
+                                <path
+                                  d="M213.333333,3.55271368e-14 C331.136,3.55271368e-14 426.666667,95.5306667 426.666667,213.333333 C426.666667,331.136 331.136,426.666667 213.333333,426.666667 C95.5306667,426.666667 3.55271368e-14,331.136 3.55271368e-14,213.333333 C3.55271368e-14,95.5306667 95.5306667,3.55271368e-14 213.333333,3.55271368e-14 Z M262.250667,134.250667 L213.333333,183.168 L164.416,134.250667 L134.250667,164.416 L183.168,213.333333 L134.250667,262.250667 L164.416,292.416 L213.333333,243.498667 L262.250667,292.416 L292.416,262.250667 L243.498667,213.333333 L292.416,164.416 L262.250667,134.250667 Z"
+                                  id="Combined-Shape"
+                                ></path>
+                              </g>
+                            </g>
+                          </g>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <button
-            className={fullTaskView.taskOptions_items}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
+            className={fullTaskView.send}
+            onClick={() => insertIntoDB()}// Button disabled while pending or saving
+            type="submit"
           >
-            close
+            {save ? "Submitting..." : submitCondition}
           </button>
         </div>
       </div>
-      <div className={fullTaskView.grid_section}>
-        <table className={fullTaskView.task_table}>
-          <tbody className={fullTaskView.table_body}>
-            {taskDetails.subtasks.map((row, index) => (
-              <tr key={row.id} className={fullTaskView.content}>
-                <th className={fullTaskView.mark}>
-                  <div className={fullTaskView.taskCount}> {index + 1} </div>
-                </th>
-                <td
-                  className={fullTaskView.user_text}
-                >
-                  <input
-                    type="text"
-                    value={row.description}
-                    onChange={(e) => handleInputChange(e, index)}
-                    onKeyPress={(e) => addExtraInputColumn(e, index)}
-                    className={fullTaskView.user_input}
-                  />
-                </td>
-                <td
-                  className={fullTaskView.user_delete}
-                  onClick={() => { deleteRow(index) }}
-                >
-                  <svg
-                    viewBox="0 0 512 512"
-                    version="1.1"
-                    width="20"
-                    height="20"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlnsXlink="http://www.w3.org/1999/xlink"
-                    fill="#ff0303"
-                  >
-                    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                    <g id="SVGRepo_iconCarrier">
-                      <title>error-filled</title>
-                      <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                        <g id="add" fill="#ff0303" transform="translate(42.666667, 42.666667)">
-                          <path
-                            d="M213.333333,3.55271368e-14 C331.136,3.55271368e-14 426.666667,95.5306667 426.666667,213.333333 C426.666667,331.136 331.136,426.666667 213.333333,426.666667 C95.5306667,426.666667 3.55271368e-14,331.136 3.55271368e-14,213.333333 C3.55271368e-14,95.5306667 95.5306667,3.55271368e-14 213.333333,3.55271368e-14 Z M262.250667,134.250667 L213.333333,183.168 L164.416,134.250667 L134.250667,164.416 L183.168,213.333333 L134.250667,262.250667 L164.416,292.416 L213.333333,243.498667 L262.250667,292.416 L292.416,262.250667 L243.498667,213.333333 L292.416,164.416 L262.250667,134.250667 Z"
-                            id="Combined-Shape"
-                          ></path>
-                        </g>
-                      </g>
-                    </g>
-                  </svg>
-                </td>
-                <td className={fullTaskView.user_complete}>
-                  <svg height="20" width="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="#0ad406">
-                    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                    <g id="SVGRepo_iconCarrier">
-                      <path
-                        fill="#0ad406"
-                        d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm-55.808 536.384-99.52-99.584a38.4 38.4 0 1 0-54.336 54.336l126.72 126.72a38.272 38.272 0 0 0 54.336 0l262.4-262.464a38.4 38.4 0 1 0-54.272-54.336L456.192 600.384z"
-                      ></path>
-                    </g>
-                  </svg>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <button
-        className={fullTaskView.send}
-        onClick={() => insertIntoDB()}// Button disabled while pending or saving
-        type="submit"
-      >
-        {save ? "Submitting..." : submitCondition}
-      </button>
     </div>
   );
 }

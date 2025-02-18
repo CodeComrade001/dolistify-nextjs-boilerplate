@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import EditSavedTask from "./page";
+import savedTaskStyles from "../styles/savedTaskLayout.module.css";
 import { useSearchParams } from 'next/navigation';
 
-export default function NewTaskLayout() {
+export default function UpdateSavedTaskLayout() {
   const [taskId, setTaskId] = useState<number>();
   const [taskQueryPath, setTaskQueryPath] = useState<{ dashboardBtn: string, dashboardRoute: string }>({
     dashboardBtn: "",
@@ -40,7 +41,7 @@ export default function NewTaskLayout() {
   }, [searchParams]);
 
   return (
-    <section className="body_section">
+    <section className={savedTaskStyles.body_section}>
       {taskId && taskQueryPath.dashboardBtn && taskQueryPath.dashboardRoute ? (
         <EditSavedTask
           taskId={taskId}

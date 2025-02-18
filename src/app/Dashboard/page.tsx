@@ -311,32 +311,6 @@ export default function DashboardPage({
 
             <section className="all-task">
                <div className="task">
-                  <div className="top-frame">
-                     <h1>Monday</h1>
-                     {/* <h1>Tuesday</h1>
-                     <h1>Wednesday</h1>
-                     <h1>Thursday</h1>
-                     <h1>Friday</h1>
-                     <h1>Saturday</h1>
-                     <h1>Sunday</h1> */}
-                  </div>
-                  <div className="left-frame">
-                     <div>0</div>
-                     <div>2</div>
-                     <div>4</div>
-                     <div>6</div>
-                     <div>8</div>
-                     <div>10</div>
-                     <div>12</div>
-                     <div>14</div>
-                     <div>16</div>
-                     <div>18</div>
-                     <div>20</div>
-                     <div>22</div>
-                     <div>24</div>
-                  </div>
-                  <div className="right-frame"></div>
-                  <div className="bottom-frame"></div>
                   <div className="task-list">
                      {userTask}
                   </div>
@@ -444,8 +418,7 @@ export default function DashboardPage({
                         <div
                            className="fulldate"
                         >
-                           4<sup>th</sup> October
-                           <span className="calender-year">2024</span>
+                           <input type="date"  title="Choose date" className="user-selected-date"/>
                         </div>
                         <div className="date-right">
                            <svg
