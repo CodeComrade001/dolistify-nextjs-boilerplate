@@ -2,24 +2,35 @@
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
-export default async function taskPosition(dashboardBtn: string,dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
-   console.log("🚀 ~ taskPosition ~ taskPosition:", taskPosition)
-   const dashboardBtnFormat = dashboardBtn === "" ? "personal_task" : `${dashboardBtn}_task`;
-   const validatedDashboardRoute = dashboardRoute === "" ? "high_priority" : dashboardRoute;
+export default async function taskPosition(dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
+   let dashboardBtnFormat: string;
+   let validatedDashboardRoute: string | undefined;
+   if (dashboardBtn === "completed" || dashboardBtn === "missed") {
+      dashboardBtnFormat = `${dashboardBtn}_task`;
+      validatedDashboardRoute = `${dashboardRoute}_task`;
 
-   const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
+   } else if (dashboardBtn === "repeated" && dashboardRoute === "personal" || dashboardRoute === "work" || dashboardRoute === "time_bound") {
+      dashboardBtnFormat = `${dashboardBtn}_task`;
+      validatedDashboardRoute = `${dashboardRoute}`;
+   } else {
+      dashboardBtnFormat = dashboardBtn === "" ? "personal_task" : `${dashboardBtn}_task`;
+      validatedDashboardRoute = dashboardRoute === "" ? "high_priority" : dashboardRoute;
+   }
+
+   const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
    if (!allowedDashboard.includes(dashboardBtnFormat)) {
       console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
       return false;
    }
 
-   const allowedRoutes = ["completed", "high_priority", "archived", "missed", "main", "time_deadline", "date_deadline"]; // Add more valid column names if necessary
+   const allowedRoutes = ["completed", "high_priority", "personal_task", "work_task", "time_bound_task", "archived", "missed", "main", "time_deadline", "date_deadline", "personal", "work", "time_bound"]; // Add more valid column names if necessary
    if (!allowedRoutes.includes(validatedDashboardRoute)) {
       console.log(`Invalid column name: ${validatedDashboardRoute}`);
       return false;
    }
+
    try {
-      const result = await taskPositionRequirement(dashboardBtnFormat,validatedDashboardRoute);
+      const result = await taskPositionRequirement(dashboardBtnFormat, validatedDashboardRoute);
 
       if (!result) {
          console.log("Error fetching task");
@@ -70,12 +81,12 @@ export default async function taskPosition(dashboardBtn: string,dashboardRoute: 
                row = lastRow; // Move to a new row
                column = 1; // Start column position at 1
                lastRow += 3; // Increment the row for the next different hrs
-               columnOffset = 4; // Reset column offset for this row
+               columnOffset = 5; // Reset column offset for this row
             } else {
                // Same hrs, stay in the same row
                row = lastRow - 3; // Use the same row as before
                column = columnOffset; // Increment column position
-               columnOffset += 3; // Update column offset for the next item
+               columnOffset += 4; // Update column offset for the next item
             }
 
             // Add the processed data to the result array

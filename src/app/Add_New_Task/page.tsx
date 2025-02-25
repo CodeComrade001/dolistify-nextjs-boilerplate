@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import fullTaskView from "../styles/fullTaskView.module.css";
 import insertTask from "../component/backend_component/TaskBackend";
+import { redirect, useRouter } from "next/navigation";
 
 interface newTaskDataType {
   title: string;
@@ -26,6 +27,8 @@ export default function AddNewTask() {
     subtasks: [{ id: 1, description: "" }],
     status: [{ id: 1, completed: null, missed: null }],
   })
+  console.log("🚀 ~ AddNewTask ~ userDeadline:", userDeadline)
+  const router = useRouter();
 
   function handleSelection(selection: "dashboardGroup" | "dashboardRoute") {
     setActiveSelection((prevSelection) => (
@@ -124,9 +127,9 @@ export default function AddNewTask() {
         }
       case "Repeated Task":
         return {
-          routeOptions: ["high_priority Task", "main Task", "archived Task", "Time Deadline Task", "Date Deadline Task"],
+          routeOptions: ["Personal Tasks", "Work Task", "high_priority Task", "main Task", "archived Task", "Time Deadline Task", "Date Deadline Task"],
           activeDashboard: "repeated",
-          activeRouteOptions: ["high_priority", "main", "archived", "time_deadline", "date_deadline"],
+          activeRouteOptions: ["personal", "work", "high_priority", "main", "archived", "time_deadline", "date_deadline"],
         }
       case "":
         return {
@@ -144,6 +147,7 @@ export default function AddNewTask() {
   }
 
   const handleOptionClick = (option: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") => {
+    setUserDeadline("")
     const dashboard = dashboardRouteOptions(option).activeDashboard;
 
     if (dashboard !== "Time-bound Task") {
@@ -155,6 +159,10 @@ export default function AddNewTask() {
     setActiveDashboardBtn(dashboard as "personal" | "work" | "time_bound" | "repeated");
     setActiveSelection("none");
   };
+
+  function handleCloseSavedTask() {
+    redirect("/Dashboard")
+  }
 
   async function insertIntoDB() {
     const dashboardBtn = activeDashboardBtn;
@@ -188,11 +196,17 @@ export default function AddNewTask() {
       const success = await insertTask(dashboardBtn, dashboardRoute, userEmail, taskDetails, userDeadline);
       setSubmitCondition(success ? "Successful" : "Failed");
       setSave(false);
+      if (success) {
+        router.push("/Dashboard");
+      }
     } else {
       // Iterate through each row to insert each task individually
       const success = await insertTask(dashboardBtn, dashboardRoute, userEmail, taskDetails);
       setSubmitCondition(success ? "Successful" : "Failed");
       setSave(false);
+      if (success) {
+        router.push("/Dashboard");
+      }
     }
   }
   const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
@@ -248,7 +262,9 @@ export default function AddNewTask() {
                       <button
                         key={option}
                         className={fullTaskView.dashboard_options}
-                        onClick={() => handleOptionClick(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task")}
+                        onClick={() => handleOptionClick(
+                          option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task"
+                        )}
                       >
                         {option}
                       </button>
@@ -289,6 +305,7 @@ export default function AddNewTask() {
                         key={route}
                         className={fullTaskView.dashboard_options}
                         onClick={() => {
+                          setUserDeadline("")
                           const options = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task"); // Ensure to fetch updated options
                           const routeOption = options.activeRouteOptions[index]; // Index matches the button
                           const dashboardRouteOption = options.routeOptions[index]
@@ -331,9 +348,7 @@ export default function AddNewTask() {
               />
               <button
                 className={fullTaskView.taskOptions_items}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
+                onClick={() => handleCloseSavedTask()}
               >
                 close
               </button>

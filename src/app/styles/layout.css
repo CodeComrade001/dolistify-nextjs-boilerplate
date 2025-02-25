@@ -19,7 +19,7 @@ button {
     inset 0px -8px 36px rgba(0, 0, 0, 0.3),
     inset 0px 1px 5px rgba(255, 255, 255, 0.6), 2px 19px 31px rgba(0, 0, 0, 0.2);
   border-radius: 14px;
-  font-weight: bold;
+  font-weight: bolder;
   font-size: 16px;
   border: 0;
   -webkit-user-select: none;
@@ -31,7 +31,7 @@ button {
 
 /* WHITE THEME BACKGROUND STYLES */
 .dashboard-body-whiteTheme {
-  background-color: #fffff0;
+  background-color:  #F5F5F5;
 }
 
 .dashboard-body-whiteTheme .calender-year {
@@ -161,18 +161,31 @@ button {
 }
 
 button:hover,
+.top-frame > h1:hover,
+.side-nav-container-whiteTheme button:hover {
+  transition-duration: 0.4s;
+  background-color: #fff;
+  box-shadow: 0px 2px 10px 5px #1abc9c;
+  color: #000;
+}
+
+.button:active:after,
 .top-frame > h1:hover {
-  background-image: linear-gradient(to right, green, yellow);
-  -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
-  box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
-  color: whitesmoke;
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  transition: 0s;
+}
+
+.button:focus {
+  outline: 0;
 }
 
 button:hover > h2,
 button:hover svg,
 button:hover svg path {
-  color: whitesmoke;
-  fill: white;
+  color: black;
+  fill: black;
 }
 
 button:hover .calender-year {
@@ -344,10 +357,10 @@ button:hover .calender-year {
 }
 
 .sub-routes-nav > .activeBtn {
-  background-image: linear-gradient(to right, green, yellow);
-  -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
-  box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
-  color: whitesmoke;
+  transition-duration: 0.4s;
+  background-color: #fff;
+  box-shadow: 0px 2px 10px 5px #1abc9c;
+  color: #000;
 }
 
 .current-time {
@@ -808,7 +821,14 @@ button:hover .calender-year {
   font-size: 1.7rem;
 }
 
+.dropbtn > span > svg:nth-child(1) {
+  color: black;
+  fill: black;
+}
+
 .dropbtn > span > svg {
+  color: whitesmoke;
+  fill: white;
   height: 25px;
   width: 25px;
   margin-right: 10px;
@@ -833,10 +853,15 @@ button:hover .calender-year {
 }
 
 #myDropdown .activeBtn {
-  background-image: linear-gradient(to right, green, yellow);
-  -webkit-box-shadow: 0px 0px 16px 8px rgba(20, 240, 0, 1);
-  box-shadow: 0px 0px 10px 8px rgba(20, 240, 0, 1);
-  color: whitesmoke;
+  transition-duration: 0.4s;
+  background-color: #fff;
+  box-shadow: 0px 2px 10px 5px #1abc9c;
+  color: #000;
+}
+
+#myDropdown .activeBtn svg {
+  fill:black;
+  color:black;
 }
 
 #myDropdown > button > h2 {
@@ -861,8 +886,14 @@ button:hover .calender-year {
   gap: 5px;
 }
 
-.side-nav-overview * {
-  color: #070000;
+.side-nav-overview button svg {
+  color: whitesmoke;
+  fill: white;
+}
+
+.dashboard_heading {
+  text-shadow: 0 0 15px black;
+  color: black;
   font-family: Arial, sans-serif;
 }
 

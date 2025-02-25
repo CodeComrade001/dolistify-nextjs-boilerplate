@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import taskDisplay from "../../styles/taskDisplay.module.css";
-import { showSavedTaskSummaryView, TaskAttributes } from "../backend_component/TaskBackend";
+import { showSavedTaskDetailView, showSavedTaskSummaryView, TaskAttributes } from "../backend_component/TaskBackend";
 import taskPosition from "../analytics_overview/TaskPlacement";
 import classNames from "classnames";
 import Link from "next/link";
@@ -15,7 +15,7 @@ interface TaskQueryResult {
 interface savedTaskDataType {
    title: string;
    subtasks: Array<{ id: number; description: string }>;
-   status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
+   status: Array<{ id: number; completed: boolean; missed: boolean }>;
 }
 
 export default function TaskDisplay({
@@ -28,12 +28,7 @@ export default function TaskDisplay({
    const [tasks, setTasks] = useState<TaskQueryResult[]>([]);
    const [taskStyle, setTaskStyle] = useState<{ [key: number]: React.CSSProperties }>({});
    const [isStylesReady, setIsStylesReady] = useState(false);
-   const [userId, setUserId] = useState<number | null>(null);
-   const [userFullTask, setUserFullTask] = useState<savedTaskDataType>({
-      title: "",
-      subtasks: [{ id: 1, description: "" }],
-      status: [{ id: 1, completed: null, missed: null }],
-   })
+   const [userFullTask, setUserFullTask] = useState<savedTaskDataType | null>(null)
 
    const setTaskPlacement = useCallback(async (id: number): Promise<React.CSSProperties> => {
       try {
@@ -50,7 +45,7 @@ export default function TaskDisplay({
       }
    }, [dashboardBtn, dashboardRoute])
 
-   const fetchTasks = useCallback(async (dashboardBtn: string, dashboardRoute: string) => {
+   const fetchTasksSummaryView = useCallback(async (dashboardBtn: string, dashboardRoute: string) => {
       try {
          const queryResult = await showSavedTaskSummaryView(dashboardBtn, dashboardRoute);
          if (Array.isArray(queryResult)) {
@@ -70,8 +65,45 @@ export default function TaskDisplay({
       }
    }, [setTaskPlacement]);
 
+   const fetchFullTask = useCallback(async (taskId: number, dashboardBtn: string, dashboardRoute: string) => {
+      try {
+         const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
+         console.log("🚀 ~ fetchFullTask ~ savedTaskArray:", savedTaskArray)
 
+         if (!savedTaskArray) {
+            console.log("No saved task found");
+            return null;
+         }
 
+         const taskFormat: savedTaskDataType = {
+            ...savedTaskArray,
+            subtasks: JSON.parse(savedTaskArray.subtasks),
+            status: JSON.parse(savedTaskArray.status),
+         };
+
+         console.log("🚀 ~ fetchFullTask ~ taskFormat:", taskFormat);
+         setUserFullTask(taskFormat)
+         return taskFormat;
+      } catch (error: unknown) {
+         console.error("Error Fetching full Task:", error);
+         return null;
+      }
+   }, [])
+
+   const handleTaskUpdate = async (taskId: number, condition: "deleted" | "missed" | "completed") => {
+      console.log("🚀 ~ handleTaskUpdate ~ taskId:", taskId)
+      // First, fetch the full task details
+      const userFullTask = await fetchFullTask(taskId, dashboardBtn, dashboardRoute);
+      console.log("🚀 ~ handleTaskUpdate ~ fullTask:", userFullTask)
+
+      if (userFullTask !== null) {
+         // Optionally update state if needed:
+         // Then update the task condition using the fetched details
+         await setTaskCondition(taskId, dashboardBtn, dashboardRoute, condition, userFullTask);
+      } else {
+         console.error("Full task not found for id:", taskId);
+      }
+   };
 
 
    function formatTimestamp(timestamp: string): string {
@@ -85,49 +117,58 @@ export default function TaskDisplay({
       });
    }
 
-   async function setTaskCondition(dashboardBtn: string, dashboardRoute: string, condition: "deleted" | "missed" | "completed") {
-      console.log("🚀 ~ setTaskCondition ~ before userId:", userId)
-      console.log("setTaskCondition has started")
+   async function setTaskCondition(
+      taskId: number,
+      dashboardBtn: string,
+      dashboardRoute: string,
+      condition: "deleted" | "missed" | "completed",
+      taskDetails: savedTaskDataType | null
+   ) {
+      console.log("🚀 ~ setTaskCondition ~ before taskId:", taskId);
+      console.log("setTaskCondition has started");
       try {
-         if (userId !== null && userFullTask !== undefined) {
-            console.log("🚀 ~ setTaskCondition ~ after userId:", userId)
+         if (taskDetails !== null) {
+            // For example, if condition is "missed", update the status:
             if (condition === "missed") {
-               const updatedStatus = userFullTask.status.map((item) => ({
+               const updatedStatus = taskDetails.status.map((item) => ({
                   ...item,
                   missed: true,
                   completed: false,
                }));
-
-               setUserFullTask((prevTask) => ({
-                  ...prevTask,
+               // If you want to update state as well:
+               const updatedTask = {
+                  ...taskDetails,
                   status: updatedStatus,
-               }));
+               };
 
-               const setTaskCondition = await TaskAttributes(condition, dashboardBtn, dashboardRoute, userFullTask, userId);
-               console.log(setTaskCondition ? "successful set task condition" : "failed to set task condition");
-
-               return true
-            } else if (condition === "completed") {
-               const updatedStatus = userFullTask.status.map((item) => ({
+               console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
+               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
+               console.log(result ? "successful set task condition" : "failed to set task condition");
+               return true;
+            }
+            // Similarly handle "completed" and "deleted"
+            else if (condition === "completed") {
+               const updatedStatus = taskDetails.status.map((item) => ({
                   ...item,
                   missed: false,
                   completed: true,
                }));
 
-               setUserFullTask((prevTask) => ({
-                  ...prevTask,
+               const updatedTask = {
+                  ...taskDetails,
                   status: updatedStatus,
-               }));
+               };
+               console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
 
-               const setTaskCondition = await TaskAttributes(condition, dashboardBtn, dashboardRoute, userFullTask, userId);
-               console.log(setTaskCondition ? "successful set task condition" : "failed to set task condition");
-               return true
+               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
+               console.log(result ? "successful set task condition" : "failed to set task condition");
+               return true;
             } else {
-               const setTaskCondition = await TaskAttributes(condition, dashboardBtn, dashboardRoute, userFullTask, userId);
-               console.log(setTaskCondition ? "successful set task condition" : "failed to set task condition");
-               return true
+               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, taskDetails, taskId);
+               console.log("🚀 ~ taskDetails:", taskDetails);
+               console.log(result ? "successful set task condition" : "failed to set task condition");
+               return true;
             }
-
          }
       } catch (error: unknown) {
          console.error("Error updating task condition:", error instanceof Error ? error.message : "Unknown error");
@@ -136,8 +177,8 @@ export default function TaskDisplay({
    }
 
    useEffect(() => {
-      fetchTasks(dashboardBtn, dashboardRoute).then(() => setIsStylesReady(true));
-   }, [fetchTasks, dashboardBtn, dashboardRoute]);
+      fetchTasksSummaryView(dashboardBtn, dashboardRoute).then(() => setIsStylesReady(true));
+   }, [fetchTasksSummaryView, dashboardBtn, dashboardRoute]);
 
    const containerClass = classNames({
       [taskDisplay.container_loader]: !isStylesReady,
@@ -166,57 +207,48 @@ export default function TaskDisplay({
                            </div>
                            <div className={taskDisplay.task_title}>{task.title}</div>
                         </div>
-                        <div className={taskDisplay.options_container}>
-                           <div className={taskDisplay.top_row}>
+                        <div  className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn_option_container : taskDisplay.options_container}`}>
+                           <div className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.main_button_container : taskDisplay.top_row}`}>
                               <button
                                  title="View Task"
-                                 className={taskDisplay.task_options}
-                                 onClick={() => {
-                                    setUserId(task.id)
-                                 }}
+                                 className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.only_active_btn : taskDisplay.task_options}`}
                               >
                                  <Link href={{
                                     pathname: '/Update_Saved_Task',
                                     query: { param1: task.id, param2: dashboardBtn, param3: dashboardRoute },
                                  }}>
-                                    <svg viewBox="0 0 1024 1024" className="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000" stroke="#000000">
+                                    <svg viewBox="0 0 1024 1024" className="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="white" stroke="white">
                                        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                        <g id="SVGRepo_tracerCarrier" strokeLinecap="round"
                                           strokeLinejoin="round"></g>
                                        <g id="SVGRepo_iconCarrier">
-                                          <path d="M149.333333 85.333333h725.333334v853.333334H149.333333z" fill="#3a4c59"></path>
-                                          <path d="M277.333333 554.666667h85.333334v85.333333h-85.333334zM277.333333 384h85.333334v85.333333h-85.333334zM277.333333 725.333333h85.333334v85.333334h-85.333334zM277.333333 213.333333h85.333334v85.333334h-85.333334zM448 554.666667h298.666667v85.333333H448zM448 384h298.666667v85.333333H448zM448 725.333333h298.666667v85.333334H448zM448 213.333333h298.666667v85.333334H448z" fill="#2196F3">
+                                          <path d="M149.333333 85.333333h725.333334v853.333334H149.333333z" fill="white"></path>
+                                          <path d="M277.333333 554.666667h85.333334v85.333333h-85.333334zM277.333333 384h85.333334v85.333333h-85.333334zM277.333333 725.333333h85.333334v85.333334h-85.333334zM277.333333 213.333333h85.333334v85.333334h-85.333334zM448 554.666667h298.666667v85.333333H448zM448 384h298.666667v85.333333H448zM448 725.333333h298.666667v85.333334H448zM448 213.333333h298.666667v85.333334H448z" fill="white">
                                           </path>
                                        </g></svg>
                                  </Link>
                               </button>
                               <button
                                  title="complete Task"
-                                 className={taskDisplay.task_options}
-                                 onClick={() => {
-                                    setUserId(task.id)
-                                    setTaskCondition(dashboardBtn, dashboardRoute, "completed")
-                                 }}
+                                 className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
+                                 onClick={() => handleTaskUpdate(task.id, "completed")}
                               >
-                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                                 <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                     <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                                     <g id="SVGRepo_iconCarrier">
-                                       <path fillRule="evenodd" clipRule="evenodd" d="M12 21C16.9706 21 21 16.9706 21 12C21 10.1666 20.4518 8.46124 19.5103 7.03891L12.355 14.9893C11.6624 15.7589 10.4968 15.8726 9.66844 15.2513L6.4 12.8C5.95817 12.4686 5.86863 11.8418 6.2 11.4C6.53137 10.9582 7.15817 10.8686 7.6 11.2L10.8684 13.6513L18.214 5.48955C16.5986 3.94717 14.4099 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="#222222">
+                                       <path fillRule="evenodd" clipRule="evenodd" d="M12 21C16.9706 21 21 16.9706 21 12C21 10.1666 20.4518 8.46124 19.5103 7.03891L12.355 14.9893C11.6624 15.7589 10.4968 15.8726 9.66844 15.2513L6.4 12.8C5.95817 12.4686 5.86863 11.8418 6.2 11.4C6.53137 10.9582 7.15817 10.8686 7.6 11.2L10.8684 13.6513L18.214 5.48955C16.5986 3.94717 14.4099 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white">
                                        </path>
                                     </g>
                                  </svg>
                               </button>
                            </div>
-                           <div className={taskDisplay.bottom_row}>
+                           <div className={ `${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_bottom_row : taskDisplay.bottom_row}`}>
                               <button
                                  title="failed Task"
-                                 className={taskDisplay.task_options}
-                                 onClick={() => {
-                                    setUserId(task.id)
-                                    setTaskCondition(dashboardBtn, dashboardRoute, "missed")
-                                 }}
+                                 className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
+                                 onClick={() => handleTaskUpdate(task.id, "missed")}
                               >
-                                 <svg fill="#000000" viewBox="0 -8 528 528" xmlns="http://www.w3.org/2000/svg">
+                                 <svg fill="white" viewBox="0 -8 528 528" xmlns="http://www.w3.org/2000/svg">
                                     <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                     <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                                     <g id="SVGRepo_iconCarrier">
@@ -226,13 +258,10 @@ export default function TaskDisplay({
                               </button>
                               <button
                                  title="delete Task"
-                                 className={taskDisplay.task_options}
-                                 onClick={() => {
-                                    setUserId(task.id)
-                                    setTaskCondition(dashboardBtn, dashboardRoute, "deleted")
-                                 }}
+                                 className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
+                                 onClick={() => handleTaskUpdate(task.id, "deleted")}
                               >
-                                 <svg fill="#000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                 <svg fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                     <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                                     <g id="SVGRepo_iconCarrier">

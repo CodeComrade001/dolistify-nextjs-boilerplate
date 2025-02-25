@@ -5,7 +5,7 @@ import weeklyReview from "../../styles/weeklyReview.module.css";
 import Bar from "../caculation_report_component/Bar";
 import PieChart, { PieChartLabel } from "../caculation_report_component/PieChart";
 
-export default function WeeklyBarChart(): JSX.Element {
+export default function WeeklyBarChart() {
 
    return (
       <div className={weeklyReview.weekly_bar_chart}>

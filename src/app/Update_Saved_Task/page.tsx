@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import editSavedTask from "../styles/editSavedTask.module.css";
 import { showSavedTaskDetailView, updateTaskInformation } from "../component/backend_component/TaskBackend";
+import { redirect } from "next/navigation";
 
 interface savedTaskDataType {
   title: string;
@@ -164,6 +165,10 @@ export default function EditSavedTask({
     setEditedTask((prevTask) => missedTaskRow(prevTask, index, indicator))
   };
 
+  function handleCloseSavedTask() {
+    redirect("/Dashboard")
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -255,7 +260,7 @@ export default function EditSavedTask({
 
                   {/* Show Remaining Task Not Completed */}
                   <div className={editSavedTask.editing_items}>
-                    Remaining 
+                    Remaining
                   </div>
 
                   {/* Input for Task Title */}
@@ -275,9 +280,7 @@ export default function EditSavedTask({
                   {/* Close Button */}
                   <button
                     className={editSavedTask.close_task}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    onClick={() => handleCloseSavedTask()}
                   >
                     Close
                   </button>

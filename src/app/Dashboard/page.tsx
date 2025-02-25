@@ -40,7 +40,7 @@ interface WeatherConditionDataType {
 interface DashboardPageProps {
    profileImage: any;
    profileDetails: any;
-   userTask: any ;
+   userTask: any;
    userDeletedFiles: any;
    weeklyData: any;
    helperViewTab: any;
@@ -61,7 +61,9 @@ export default function DashboardPage({
    const [weatherCondition, setWeatherCondition] = useState<WeatherConditionDataType | null>();
    const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "completed" | "missed" | "repeated">("personal");
    const [activeDashboardBtnRoute, setActiveDashboardBtnRoute] = useState("high_priority");
-   
+   console.log("🚀 ~ activeDashboardBtn:", activeDashboardBtn)
+   console.log("🚀 ~ activeDashboardBtnRoute:", activeDashboardBtnRoute)
+
 
    useEffect(() => {
       // Check localStorage for user's theme preference
@@ -151,18 +153,18 @@ export default function DashboardPage({
             }
          case "completed":
             return {
-               routeOptions: ["UpComing Tasks", "High Priority", "Primary Task", "Deadline Task", "Archived Task"],
-               activeRouteOptions: ["upComing", "high_priority", "main", "deadline", "archived"],
+               routeOptions: ["Personal Task", "Work Task", "Time Bound Task"],
+               activeRouteOptions: ["personal", "work", "time_bound"],
             }
          case "missed":
             return {
-               routeOptions: ["UpComing Tasks", "High Priority", "Primary Task", "Deadline Task", "Archived Task"],
-               activeRouteOptions: ["upComing", "high_priority", "main", "deadline", "archived"],
+               routeOptions: ["Personal Task", "Work Task", "Time Bound Task"],
+               activeRouteOptions: ["personal", "work", "time_bound"],
             }
          case "repeated":
             return {
-               routeOptions: ["UpComing Tasks", "High Priority", "Primary Task",  "Missed Task", "Completed Task", "Archived Task", "Time Deadline Task", "Date Deadline Task"],
-               activeRouteOptions: ["upComing", "high_priority", "main",  "missed", "completed", "archived", "time_deadline", "date_deadline"],
+               routeOptions: ["Personal Tasks","Work Task" ,"Time bound Task", "High Priority Task", "Primary Task", "Missed Task", "Completed Task", "Archived Task"],
+               activeRouteOptions: ["personal","work" , "time_bound","high_priority", "main", "missed", "completed", "archived"],
             }
       }
    }
@@ -189,7 +191,7 @@ export default function DashboardPage({
                      >
                         <path d="M 11 0 L 11 3 L 13 3 L 13 0 L 11 0 z M 4.2226562 2.8085938 L 2.8085938 4.2226562 L 4.9296875 6.34375 L 6.34375 4.9296875 L 4.2226562 2.8085938 z M 19.777344 2.8085938 L 17.65625 4.9296875 L 19.070312 6.34375 L 21.191406 4.2226562 L 19.777344 2.8085938 z M 12 5 A 7 7 0 0 0 5 12 A 7 7 0 0 0 12 19 A 7 7 0 0 0 19 12 A 7 7 0 0 0 12 5 z M 0 11 L 0 13 L 3 13 L 3 11 L 0 11 z M 21 11 L 21 13 L 24 13 L 24 11 L 21 11 z M 4.9296875 17.65625 L 2.8085938 19.777344 L 4.2226562 21.191406 L 6.34375 19.070312 L 4.9296875 17.65625 z M 19.070312 17.65625 L 17.65625 19.070312 L 19.777344 21.191406 L 21.191406 19.777344 L 19.070312 17.65625 z M 11 21 L 11 24 L 13 24 L 13 21 L 11 21 z"></path>
                      </svg>) :
-                        (<svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 107.112 107.112" xmlSpace="preserve"
+                        (<svg fill="white" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 107.112 107.112" xmlSpace="preserve"
                         ><g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                            <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                            <g id="SVGRepo_iconCarrier">
@@ -212,7 +214,7 @@ export default function DashboardPage({
                         xmlnsXlink="http://www.w3.org/1999/xlink"
                         viewBox="0 0 512 512"
                         xmlSpace="preserve"
-                        fill="#000000"
+                        fill="white"
                      >
                         <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                         <g
@@ -222,7 +224,7 @@ export default function DashboardPage({
                         ></g>
                         <g id="SVGRepo_iconCarrier">
                            <style type="text/css">
-                              {`.st0 { fill: #000000;}`}
+                              {`.st0 { fill: white;}`}
                            </style>
                            <g>
                               <path
@@ -323,27 +325,7 @@ export default function DashboardPage({
                </div>
 
                <div className="ignored">
-                  <div className="ignored-items-header">
-                     <h2 className="welcome-message">
-                        <button>Archive Task</button>
-                        <input type="checkbox" title="check box" id="ignored-items-header-checkbox" />
-                     </h2>
-                     <input type="Search Task" title="place holder" id="ignored-search" />
-                     <button>Date</button>
-                     <button>View</button>
-                  </div>
-                  <div className="task-table-container">
-                     <table className="task-table">
-                        <thead>
-                           <tr className="table-container" >
-                              <th><button>Title</button></th>
-                              <th><button>Status</button></th>
-                              <th><button>Time</button></th>
-                           </tr>
-                        </thead>
-                        {userDeletedFiles}
-                     </table>
-                  </div>
+                  {userDeletedFiles}
                </div>
             </section>
          </section>
@@ -364,7 +346,7 @@ export default function DashboardPage({
                               <path fillRule="evenodd"
                                  clipRule="evenodd"
                                  d="M12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22ZM12 8.25C12.4142 8.25 12.75 8.58579 12.75 9V11.25H15C15.4142 11.25 15.75 11.5858 15.75 12C15.75 12.4142 15.4142 12.75 15 12.75H12.75L12.75 15C12.75 15.4142 12.4142 15.75 12 15.75C11.5858 15.75 11.25 15.4142 11.25 15V12.75H9C8.58579 12.75 8.25 12.4142 8.25 12C8.25 11.5858 8.58579 11.25 9 11.25H11.25L11.25 9C11.25 8.58579 11.5858 8.25 12 8.25Z"
-                                 fill="#000000">
+                                 fill="white">
                               </path>
                            </g>
                         </svg>
@@ -386,7 +368,7 @@ export default function DashboardPage({
                <div className="date">
                   <div>
                      <div className="date-switch">
-                        <div className="date-left">
+                        <button title="previous day" className="date-left">
                            <svg
                               height="200px"
                               width="200px"
@@ -414,13 +396,13 @@ export default function DashboardPage({
                                  </g>
                               </g>
                            </svg>
-                        </div>
+                        </button>
                         <div
                            className="fulldate"
                         >
-                           <input type="date"  title="Choose date" className="user-selected-date"/>
+                           <input type="date" title="Choose date" className="user-selected-date" />
                         </div>
-                        <div className="date-right">
+                        <button title="next Day" className="date-right">
                            <svg
                               height="200px"
                               width="200px"
@@ -448,7 +430,7 @@ export default function DashboardPage({
                                  </g>
                               </g>
                            </svg>
-                        </div>
+                        </button>
                      </div>
                   </div>
                </div>
@@ -458,7 +440,7 @@ export default function DashboardPage({
                      <div className="dropbtn">
                         <span>
                            <svg
-                              fill="#000000"
+                              fill="#0000"
                               viewBox="0 0 24 24"
                               xmlns="http://www.w3.org/2000/svg"
                               id="dashboard"
@@ -478,13 +460,18 @@ export default function DashboardPage({
                               </g>
                            </svg>
                         </span>
-                        <h1>Dashboard</h1>
+                        <h1 className="dashboard_heading" >Dashboard</h1>
                      </div>
                      <div id="myDropdown" className="dropdown-content">
                         <button
                            onClick={() => {
-                              handleClick("personal", activeDashboardBtnRoute);
                               setActiveDashboardBtn("personal");
+                              const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0];
+                              console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
+                              const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
+                              console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
+                              setActiveDashboardBtnRoute(defaultRouteOption)
+                              handleClick("personal", activeDefaultRoute);
                            }}
                            className={activeDashboardBtn === "personal" ? "activeBtn" : ""}
                         >
@@ -513,8 +500,13 @@ export default function DashboardPage({
                         </button>
                         <button
                            onClick={() => {
-                              handleClick("work", activeDashboardBtnRoute);
                               setActiveDashboardBtn("work")
+                              const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0]
+                              console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
+                              const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
+                              console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
+                              setActiveDashboardBtnRoute(defaultRouteOption)
+                              handleClick("work", activeDefaultRoute);
                            }}
                            className={activeDashboardBtn === "work" ? "activeBtn" : ""}
                         >
@@ -545,41 +537,15 @@ export default function DashboardPage({
                            </span>
                            <h2>Work</h2>
                         </button>
-
-                        {/* <button
-                           onClick={() => {
-                              handleClick("custom", activeDashboardBtnRoute);
-                              setActiveDashboardBtn("custom")
-                           }}
-                           className={activeDashboardBtn === "custom" ? "activeBtn" : ""}
-                        >
-                           <span>
-                              <svg
-                                 fill="#000000"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 52 52"
-                                 enableBackground="new 0 0 52 52"
-                                 xmlSpace="preserve"
-                              >
-                                 <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                                 <g
-                                    id="SVGRepo_tracerCarrier"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                 ></g>
-                                 <g id="SVGRepo_iconCarrier">
-                                    <path
-                                       d="M49.4,12.2c-0.2-0.6-0.9-0.7-1.4-0.3L39.9,20c-0.6,0.6-1.6,0.6-2.2,0L32,14.3c-0.6-0.6-0.6-1.6,0-2.2L40.2,4 c0.4-0.4,0.2-1.1-0.3-1.4C38.5,2.2,37,2,35.6,2c-8.5,0-15.3,7.3-14.3,16c0.2,1.4,0.5,2.6,1,3.8L3.6,40.4c-2.2,2.2-2.2,5.8,0,7.9 c1.1,1.1,2.6,1.7,4,1.7s2.9-0.6,4-1.7l18.6-18.6c1.2,0.5,2.5,0.8,3.8,1c8.7,1,16-5.8,16-14.3C50,14.9,49.8,13.5,49.4,12.2z"
-                                    ></path>
-                                 </g>
-                              </svg>
-                           </span>
-                           <h2>Custom</h2>
-                        </button> */}
                         <button
                            onClick={() => {
-                              handleClick("time_bound", activeDashboardBtnRoute);
                               setActiveDashboardBtn("time_bound")
+                              const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0]
+                              console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
+                              const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
+                              console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
+                              setActiveDashboardBtnRoute(defaultRouteOption)
+                              handleClick("time_bound", activeDefaultRoute);
                            }}
                            className={activeDashboardBtn === "time_bound" ? "activeBtn" : ""}
                         >
@@ -606,8 +572,13 @@ export default function DashboardPage({
                         </button>
                         <button
                            onClick={() => {
-                              handleClick("completed", activeDashboardBtnRoute);
                               setActiveDashboardBtn("completed")
+                              const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0]
+                              console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
+                              const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
+                              console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
+                              setActiveDashboardBtnRoute(defaultRouteOption)
+                              handleClick("completed", activeDefaultRoute);
                            }}
                            className={activeDashboardBtn === "completed" ? "activeBtn" : ""}
                         >
@@ -615,7 +586,7 @@ export default function DashboardPage({
                               <svg
                                  viewBox="0 0 1024 1024"
                                  xmlns="http://www.w3.org/2000/svg"
-                                 fill="#000000"
+                                 fill="white"
                               >
                                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                  <g
@@ -625,7 +596,7 @@ export default function DashboardPage({
                                  ></g>
                                  <g id="SVGRepo_iconCarrier">
                                     <path
-                                       fill="#000000"
+                                       fill="white"
                                        d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm-55.808 536.384-99.52-99.584a38.4 38.4 0 1 0-54.336 54.336l126.72 126.72a38.272 38.272 0 0 0 54.336 0l262.4-262.464a38.4 38.4 0 1 0-54.272-54.336L456.192 600.384z"
                                     ></path>
                                  </g>
@@ -635,8 +606,13 @@ export default function DashboardPage({
                         </button>
                         <button
                            onClick={() => {
-                              handleClick("missed", activeDashboardBtnRoute);
                               setActiveDashboardBtn("missed")
+                              const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0];
+                              console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
+                              const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
+                              console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
+                              setActiveDashboardBtnRoute(defaultRouteOption)
+                              handleClick("missed", activeDefaultRoute);
                            }}
                            className={activeDashboardBtn === "missed" ? "activeBtn" : ""}
                         >
@@ -648,14 +624,14 @@ export default function DashboardPage({
                                  height="25"
                                  xmlns="http://www.w3.org/2000/svg"
                                  xmlnsXlink="http://www.w3.org/1999/xlink"
-                                 fill="#000000"
+                                 fill="white"
                               >
                                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                  <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                                  <g id="SVGRepo_iconCarrier">
                                     <title>error-filled</title>
                                     <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                                       <g id="add" fill="#000000" transform="translate(42.666667, 42.666667)">
+                                       <g id="add" fill="white" transform="translate(42.666667, 42.666667)">
                                           <path
                                              d="M213.333333,3.55271368e-14 C331.136,3.55271368e-14 426.666667,95.5306667 426.666667,213.333333 C426.666667,331.136 331.136,426.666667 213.333333,426.666667 C95.5306667,426.666667 3.55271368e-14,331.136 3.55271368e-14,213.333333 C3.55271368e-14,95.5306667 95.5306667,3.55271368e-14 213.333333,3.55271368e-14 Z M262.250667,134.250667 L213.333333,183.168 L164.416,134.250667 L134.250667,164.416 L183.168,213.333333 L134.250667,262.250667 L164.416,292.416 L213.333333,243.498667 L262.250667,292.416 L292.416,262.250667 L243.498667,213.333333 L292.416,164.416 L262.250667,134.250667 Z"
                                              id="Combined-Shape"
@@ -669,8 +645,13 @@ export default function DashboardPage({
                         </button>
                         <button
                            onClick={() => {
-                              handleClick("repeated", activeDashboardBtnRoute);
                               setActiveDashboardBtn("repeated")
+                              const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0];
+                              console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
+                              const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
+                              console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
+                              setActiveDashboardBtnRoute(defaultRouteOption)
+                              handleClick("repeated", activeDefaultRoute);
                            }}
                            className={activeDashboardBtn === "repeated" ? "activeBtn" : ""}
                         >
