@@ -70,7 +70,7 @@ export default async function getWeatherInfo(queryData: Params) {
     // Assuming the API returns JSON data, parse it
     const data = await response.json();
 
-    console.log("🚀 ~ getWeatherInfo ~ data:", data);
+    // console.log("🚀 ~ getWeatherInfo ~ data:", data);
 
     // Extract weather code from the response
     const weatherCode = data.current?.weather_code;

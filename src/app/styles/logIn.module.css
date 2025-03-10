@@ -344,3 +344,31 @@
 .social_icons > button:hover {
   transform: scale(1.5);
 }
+
+
+/* Error styles  */
+
+.errorText {
+  font-size:1.3em;
+  color:red;
+  font-weight:bolder;
+  margin: 0;
+}
+
+.error_list {
+  height: fit-content;
+}
+
+.error_list > p {
+  margin: 0;
+  font-size:1.3em;
+  color:red;
+  font-weight:bold;
+}
+
+.error_list  ul {
+  color:red;
+  font-size:1.2em;
+  list-style: none;
+  font-weight:bold;
+}

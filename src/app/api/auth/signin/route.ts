@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   const existingSession = await manageSession(user.id );
   console.log("🚀 ~ POST ~ existingSession:", existingSession)
 
+  const sessionToken = await encrypt({ userId: user.id });
   if (!existingSession) {
     // Session expired or does not exist, create a new one
     const sessionToken = await encrypt({ userId: user.id });
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
 
     // Set session cookie
     const response = NextResponse.json({ success: true });
+    console.log("🚀 ~ POST ~ response:", response)
     response.cookies.set({
       name: "session_token",
       value: sessionToken,
@@ -39,10 +41,22 @@ export async function POST(request: Request) {
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
     });
-
+    console.log("🚀 ~ POST ~ response.cookies.set:", response.cookies.set)
+    
     return response;
   }
+  const response = NextResponse.json({ success: true });
+  console.log("🚀 ~ POST ~ response:", response)
+  response.cookies.set({
+    name: "session_token",
+    value: sessionToken,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+  console.log("🚀 ~ POST ~ response.cookies.set:", response.cookies)
 
-  return NextResponse.json({ success: true });
+  return response;
 }
 

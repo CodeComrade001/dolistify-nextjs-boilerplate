@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import LoginStyles from "./styles/logIn.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SignupFormSchema } from "./lib/definition";
+import { z } from "zod";
+
 
 interface signInDetails {
   userName: string;
@@ -30,6 +33,11 @@ export default function HomePage() {
     password0: "",
   })
   const router = useRouter();
+  const [formErrors, setFormErrors] = useState<{
+    name?: string[];
+    email?: string[];
+    password?: string[];
+  } | null>(null);
 
   function handleAccessBtn(direction: string, UserAccessType: string) {
     console.log("🚀 ~ handleAccessBtn ~ UserAccessType:", UserAccessType)
@@ -38,84 +46,66 @@ export default function HomePage() {
     setAnimationMovement(direction)
   }
 
-  function handleSignInInputChange(event: React.ChangeEvent<HTMLInputElement>, InputType: "userName" | "password") {
-
-    switch (InputType) {
-      case "userName":
-        const usernameInput = event.target.value;
-        setUserSignInDetails((prevDetails) => ({
-          ...prevDetails,
-          userName: usernameInput
-        }))
-        break;
-      case "password":
-        const passwordInput = event.target.value;
-        setUserSignInDetails((prevDetails) => ({
-          ...prevDetails,
-          password: passwordInput
-        }))
-        break;
+  function handleSignInInputChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+    inputType: "userName" | "password"
+  ) {
+    if (inputType === "userName") {
+      setUserSignInDetails(prev => ({ ...prev, userName: event.target.value }));
+    } else {
+      setUserSignInDetails(prev => ({ ...prev, password: event.target.value }));
     }
   }
 
-  function handleSignUpInputChange(event: React.ChangeEvent<HTMLInputElement>, inputType: "userName" | "email" | "password" | "password0") {
-    switch (inputType) {
-      case "userName":
-        const usernameInput = event.target.value;
-        setUserSignUpDetails((prevDetails) => ({
-          ...prevDetails,
-          userName: usernameInput
-        }))
-        break;
-      case "email":
-        const emailInput = event.target.value;
-        setUserSignUpDetails((prevDetails) => ({
-          ...prevDetails,
-          email: emailInput
-        }))
-        break;
-      case "password":
-        const passwordInput = event.target.value;
-        setUserSignUpDetails((prevDetails) => ({
-          ...prevDetails,
-          password: passwordInput
-        }))
-        break;
-      case "password0":
-        const password0Input = event.target.value;
-        setUserSignUpDetails((prevDetails) => ({
-          ...prevDetails,
-          password0: password0Input
-        }))
-        break;
-    }
+  // Handle sign-up input changes
+  function handleSignUpInputChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+    inputType: "userName" | "email" | "password" | "password0"
+  ) {
+    setUserSignUpDetails(prev => ({
+      ...prev,
+      [inputType]: event.target.value,
+    }));
   }
 
   async function handleSignUpBtn() {
     const { userName, email, password, password0 } = userSignUpDetails;
 
-    if (password === password0) {
-      console.log("password is the same")
-      if (userName !== "" && email !== "") {
-        const response = await fetch("/api/auth/signup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userName, email, password }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          console.log("Successful but remember the dashboard Route")
-          router.push("/");
-        } else {
-          console.error("Signup failed:", data.error);
-        }
+    if (password !== password0) {
+      console.log("Passwords do not match");
+      return;
+    }
+
+    try {
+      // Validate the form data using your Zod schema.
+      SignupFormSchema.parse({
+        name: userName,
+        email: email,
+        password: password,
+      });
+      // If valid, proceed with the fetch call.
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userName, email, password }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        router.push("/Dashboard");
       } else {
-        console.log("name and email are empty")
+        console.error("Signup failed:", data.error);
       }
-    } else {
-      console.log("password is different")
+    } catch (error) {
+      // If the data is invalid, Zod will throw an error which you can catch.
+      if (error instanceof z.ZodError) {
+        setFormErrors(error.flatten().fieldErrors);
+      }
+      
+      
+      console.log("Validation error:", error);
+      // Here you can set error messages into state to show on the form.
     }
   }
 
@@ -137,13 +127,11 @@ export default function HomePage() {
         const data = await response.json();
         console.log("🚀 ~ handleSignUpBtn ~ data:", data)
         if (data.success) {
-          console.log("Successful but remember the dashboard Route")
-          router.push("/");
+          router.push("/Dashboard");
         } else {
           console.error("SignIn failed:", data.error);
         }
       }
-      console.log("No input found")
       // You could similarly implement sign-in logic here
     } catch (error: unknown) {
       console.log("Error creating account for user", error);
@@ -174,7 +162,8 @@ export default function HomePage() {
               </button>
             </div>
             {
-              accessType === "Sign up" ? (
+              accessType === "Sign up" 
+              ? (
                 <form className={LoginStyles.login} >
                   <div className={LoginStyles.Welcome_message}>
                     <h1>Sign up To Dolistify</h1>
@@ -189,6 +178,10 @@ export default function HomePage() {
                       onChange={(e) => handleSignUpInputChange(e, "userName")}
                     />
                   </div>
+                  {formErrors?.name &&
+                    formErrors?.name.map((err, idx) => (
+                      <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
+                    ))}
                   <div className={LoginStyles.login__field}>
                     <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
                     <input
@@ -199,6 +192,10 @@ export default function HomePage() {
                       onChange={(e) => handleSignUpInputChange(e, "email")}
                     />
                   </div>
+                  {formErrors?.email  &&
+                    formErrors?.email.map((err, idx) => (
+                      <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
+                    ))}
                   <div className={LoginStyles.login__field}>
                     <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
                     <input
@@ -209,6 +206,18 @@ export default function HomePage() {
                       onChange={(e) => handleSignUpInputChange(e, "password")}
                     />
                   </div>
+                  {formErrors?.password && (
+                    <div className={LoginStyles.error_list}>
+                      <p>Password must:</p>
+                      <ul>
+                        {formErrors?.password.map((error, idx) => (
+                          <li key={idx} className={LoginStyles.error_item}>
+                            {error}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className={LoginStyles.login__field}>
                     <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
                     <input
@@ -256,7 +265,7 @@ export default function HomePage() {
                       name={userSignInDetails.userName}
                       className={LoginStyles.login__input}
                       placeholder="User name / Email"
-                      onChange={(e) => handleSignInInputChange(e, "userName")} 
+                      onChange={(e) => handleSignInInputChange(e, "userName")}
                     />
                   </div>
                   <div className={LoginStyles.login__field}>

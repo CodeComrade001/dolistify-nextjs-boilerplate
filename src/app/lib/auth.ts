@@ -1,4 +1,4 @@
-import { SignJWT } from "jose"; // For creating JWT
+import {  SignJWT } from "jose"; // For creating JWT
 import { JWTPayload } from "jose"; // JWT Payload type
 import { TextEncoder } from "util";
 import { deleteSessionInDatabase, fetchSessionInDatabase, storeSessionInDataBase } from "../component/backend_component/LoginBackend";
@@ -19,6 +19,7 @@ export async function encrypt(payload: SessionPayload): Promise<string> {
     .setExpirationTime("7d")
     .sign(encodedKey);
 }
+
 
 // Store session in the database
 export async function storeSession(userId: number, sessionToken: string) {
@@ -81,14 +82,15 @@ export async function manageSession(userId: number) {
     // Convert ISO strings to Date objects
     const sessionFormat = {
       token,
-      createdAt: new Date(createdAt),
-      expiresAt: new Date(expiresAt),
+      createdAt: new Date(JSON.parse(createdAt)),
+      expiresAt: new Date(JSON.parse(expiresAt)),
     };
     console.log("🚀 ~ manageSession ~ sessionFormat:", sessionFormat);
 
     if (sessionData) {
       const currentDate = new Date();
       const sessionExpiresAt = new Date(sessionFormat.expiresAt);
+      console.log("🚀 ~ manageSession ~ sessionExpiresAt:", sessionExpiresAt)
 
       // Check if session is expired
       if (sessionExpiresAt <= currentDate) {

@@ -10,7 +10,11 @@ interface savedTaskDataType {
    status: Array<{ id: number; completed: boolean; missed: boolean }>;
 }
 
-export default function DeletedTask() {
+export default function DeletedTask({
+   id,
+} : {
+   id : number
+}) {
    const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
    const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
    const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
@@ -101,7 +105,7 @@ export default function DeletedTask() {
          const dashboardBtn = activeDashboardBtn;
          const dashboardRoute = activeDashboardRoute;
          try {
-            const queryResult = await completeTaskDetails(dashboardBtn, dashboardRoute);
+            const queryResult = await completeTaskDetails(id,dashboardBtn, dashboardRoute);
             if (!queryResult) {
                console.log("No saved task found");
                return null;
@@ -120,7 +124,7 @@ export default function DeletedTask() {
       }
 
       fetchCompleteTaskDetails();
-   }, [activeDashboardBtn, activeDashboardRoute]);
+   }, [id , activeDashboardBtn, activeDashboardRoute]);
 
 
    const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");

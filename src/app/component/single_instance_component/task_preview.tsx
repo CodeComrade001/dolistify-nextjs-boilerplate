@@ -19,9 +19,11 @@ interface savedTaskDataType {
 }
 
 export default function TaskDisplay({
+   id,
    dashboardBtn,
    dashboardRoute,
 }: {
+   id : number
    dashboardBtn: string;
    dashboardRoute: string;
 }) {
@@ -32,7 +34,7 @@ export default function TaskDisplay({
 
    const setTaskPlacement = useCallback(async (id: number): Promise<React.CSSProperties> => {
       try {
-         const taskPositionArray = (await taskPosition(dashboardBtn, dashboardRoute)) || [];
+         const taskPositionArray = (await taskPosition(id ,dashboardBtn, dashboardRoute)) || [];
          if (!Array.isArray(taskPositionArray)) {
             console.error("Invalid taskPositionArray");
             return {};
@@ -47,7 +49,7 @@ export default function TaskDisplay({
 
    const fetchTasksSummaryView = useCallback(async (dashboardBtn: string, dashboardRoute: string) => {
       try {
-         const queryResult = await showSavedTaskSummaryView(dashboardBtn, dashboardRoute);
+         const queryResult = await showSavedTaskSummaryView(id ,dashboardBtn, dashboardRoute);
          if (Array.isArray(queryResult)) {
             setTasks(queryResult);
             const styles = await Promise.all(
@@ -63,11 +65,27 @@ export default function TaskDisplay({
          console.error("Error fetching tasks:", error);
          setTasks([]);
       }
-   }, [setTaskPlacement]);
+   }, [id,setTaskPlacement]);
+
+   const handleTaskUpdate = async (taskId: number, condition: "deleted" | "missed" | "completed") => {
+      console.log("🚀 ~ handleTaskUpdate ~ taskId:", taskId)
+      // First, fetch the full task details
+      const userFullTaskFetching = await fetchFullTask(taskId, dashboardBtn, dashboardRoute);
+      console.log("🚀 ~ handleTaskUpdate ~ fullTask:", userFullTaskFetching)
+
+      if (userFullTaskFetching !== null && userFullTask !== null) {
+         // Optionally update state if needed:
+         // Then update the task condition using the fetched details
+         await setTaskCondition(taskId, dashboardBtn, dashboardRoute, condition, userFullTask);
+      } else {
+         console.error("Full task not found for id:", taskId);
+         console.error("user Full task is null:", userFullTask);
+      }
+   };
 
    const fetchFullTask = useCallback(async (taskId: number, dashboardBtn: string, dashboardRoute: string) => {
       try {
-         const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
+         const savedTaskArray = await showSavedTaskDetailView( id ,taskId, dashboardBtn, dashboardRoute);
          console.log("🚀 ~ fetchFullTask ~ savedTaskArray:", savedTaskArray)
 
          if (!savedTaskArray) {
@@ -88,22 +106,7 @@ export default function TaskDisplay({
          console.error("Error Fetching full Task:", error);
          return null;
       }
-   }, [])
-
-   const handleTaskUpdate = async (taskId: number, condition: "deleted" | "missed" | "completed") => {
-      console.log("🚀 ~ handleTaskUpdate ~ taskId:", taskId)
-      // First, fetch the full task details
-      const userFullTask = await fetchFullTask(taskId, dashboardBtn, dashboardRoute);
-      console.log("🚀 ~ handleTaskUpdate ~ fullTask:", userFullTask)
-
-      if (userFullTask !== null) {
-         // Optionally update state if needed:
-         // Then update the task condition using the fetched details
-         await setTaskCondition(taskId, dashboardBtn, dashboardRoute, condition, userFullTask);
-      } else {
-         console.error("Full task not found for id:", taskId);
-      }
-   };
+   }, [id])
 
 
    function formatTimestamp(timestamp: string): string {
@@ -142,7 +145,7 @@ export default function TaskDisplay({
                };
 
                console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
-               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
+               const result = await TaskAttributes(id,condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
                console.log(result ? "successful set task condition" : "failed to set task condition");
                return true;
             }
@@ -160,11 +163,11 @@ export default function TaskDisplay({
                };
                console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
 
-               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
+               const result = await TaskAttributes(id,condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
                console.log(result ? "successful set task condition" : "failed to set task condition");
                return true;
             } else {
-               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, taskDetails, taskId);
+               const result = await TaskAttributes(id,condition, dashboardBtn, dashboardRoute, taskDetails, taskId);
                console.log("🚀 ~ taskDetails:", taskDetails);
                console.log(result ? "successful set task condition" : "failed to set task condition");
                return true;

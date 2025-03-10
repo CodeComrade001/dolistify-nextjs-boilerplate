@@ -24,6 +24,8 @@ export default function EditSavedTask({
   const [savedTaskStatus, setSavedTaskStatus] = useState<string>("Update");
   const [missedTask, setMissedTask] = useState("");
   const [completedTask, setCompletedTask] = useState("");
+  const [userId, setUserId] = useState<null | number>(null)
+  console.log("🚀 ~ userId:", userId)
 
 
   const addNewTaskRow = (prevTask: savedTaskDataType | undefined, index: number): savedTaskDataType | undefined => {
@@ -170,12 +172,33 @@ export default function EditSavedTask({
   }
 
   useEffect(() => {
+    // Assuming document.cookie is "userId=17"
+    // Split the cookie string by semicolon (in case there are more cookies in the future)
+    const cookiesArray = document.cookie.split(";");
+    console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
+
+    // Find the cookie that starts with "userId="
+    const userIdCookie = cookiesArray.find(cookie => cookie.trim().startsWith("userId="));
+    console.log("🚀 ~ useEffect ~ userIdCookie:", userIdCookie)
+
+    // Extract the value and convert to a number
+    const userIdStr = userIdCookie ? userIdCookie.split("=")[1].trim() : null;
+    console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr)
+    const userIdNum = userIdStr ? Number(userIdStr) : null;
+    console.log("🚀 ~ useEffect ~ userIdNum:", userIdNum)
+    console.log("🚀 ~ useEffect ~ typeof(userIdNum):", typeof userIdNum)
+
+    // Set the state with the numeric value (or null)
+    setUserId(userIdNum);
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function savedTaskQuery() {
       try {
-        if (taskId != null) {
-          const savedTaskArray = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
+        if (taskId !== null && userId !== null) {
+          const savedTaskArray = await showSavedTaskDetailView(userId, taskId, dashboardBtn, dashboardRoute);
           if (!isMounted) return;
 
           console.log("🚀 ~ savedTaskQuery ~ savedTaskArray:", savedTaskArray);

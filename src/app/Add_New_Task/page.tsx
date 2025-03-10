@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import fullTaskView from "../styles/fullTaskView.module.css";
 import insertTask from "../component/backend_component/TaskBackend";
 import { redirect, useRouter } from "next/navigation";
@@ -17,10 +17,14 @@ export default function AddNewTask() {
   const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
   const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "">("");
   const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated">("personal");
+  console.log("🚀 ~ AddNewTask ~ activeDashboardBtn:", activeDashboardBtn)
   const [activeDashboardRoute, setActiveDashboardRoute] = useState<"upComing" | "high_priority" | "main" | "archived" | "time_deadline" | "date_deadline" | "">("");
+  console.log("🚀 ~ AddNewTask ~ activeDashboardRoute:", activeDashboardRoute)
   const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
   const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
   const [userDeadline, setUserDeadline] = useState<string | number>("")
+  const [userId , setUserId] = useState<number | null > (null)
+  console.log("🚀 ~ AddNewTask ~ userId:", userId)
   // const [addingRow, setAddingRow] = useState(false);
   const [taskDetails, setTaskDetails] = useState<newTaskDataType>({
     title: "",
@@ -165,12 +169,13 @@ export default function AddNewTask() {
   }
 
   async function insertIntoDB() {
-    const dashboardBtn = activeDashboardBtn;
-    const dashboardRoute = activeDashboardRoute;
+    const sentDashboardBtn = activeDashboardBtn;
+    console.log("🚀 ~ insertIntoDB ~ sentDashboardBtn:", sentDashboardBtn)
+    const sentDashboardRoute = activeDashboardRoute;
+    console.log("🚀 ~ insertIntoDB ~ sentDashboardRoute:", sentDashboardRoute)
     console.log("🚀 ~ insertIntoDB ~ dashboard:", dashboard)
     console.log("🚀 ~ insertIntoDB ~ dashboardRoute:", dashboardRoute)
 
-    const userEmail = "john.doe@example.com";
     const taskDetailsJSON = {
       title: taskDetails.title,
       subtasks: taskDetails.subtasks.map((row, index) => ({
@@ -192,8 +197,8 @@ export default function AddNewTask() {
       return;
     }
 
-    if (isDeadlineValid(userDeadline)) {
-      const success = await insertTask(dashboardBtn, dashboardRoute, userEmail, taskDetails, userDeadline);
+    if (isDeadlineValid(userDeadline) && userId !== null) {
+      const success = await insertTask(userId ,sentDashboardBtn, sentDashboardRoute, taskDetails, userDeadline);
       setSubmitCondition(success ? "Successful" : "Failed");
       setSave(false);
       if (success) {
@@ -201,15 +206,37 @@ export default function AddNewTask() {
       }
     } else {
       // Iterate through each row to insert each task individually
-      const success = await insertTask(dashboardBtn, dashboardRoute, userEmail, taskDetails);
-      setSubmitCondition(success ? "Successful" : "Failed");
-      setSave(false);
-      if (success) {
-        router.push("/Dashboard");
+      if (userId !== null) {
+        const success = await insertTask(userId ,sentDashboardBtn, sentDashboardRoute, taskDetails);
+        setSubmitCondition(success ? "Successful" : "Failed");
+        setSave(false);
+        if (success) {
+          router.push("/Dashboard");
+        }
       }
     }
   }
   const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
+
+  useEffect(() => {
+        // Split the cookie string by semicolon (in case there are more cookies in the future)
+        const cookiesArray = document.cookie.split(";");
+        console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
+  
+        // Find the cookie that starts with "userId="
+        const userIdCookie = cookiesArray.find(cookie => cookie.trim().startsWith("userId="));
+        console.log("🚀 ~ useEffect ~ userIdCookie:", userIdCookie)
+  
+        // Extract the value and convert to a number
+        const userIdStr = userIdCookie ? userIdCookie.split("=")[1].trim() : null;
+        console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr)
+        const userIdNum = userIdStr ? Number(userIdStr) : null;
+        console.log("🚀 ~ useEffect ~ userIdNum:", userIdNum)
+        console.log("🚀 ~ useEffect ~ typeof(userIdNum):", typeof userIdNum)
+  
+        // Set the state with the numeric value (or null)
+        setUserId(userIdNum);
+     }, []);
 
 
   return (

@@ -1,6 +1,5 @@
-// lib/auth.ts (or your LoginBackend file)
+import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
-import bcrypt from "bcrypt";
 import { promisify } from "util";
 
 type SignUpSuccess = { user: { id: number } };
@@ -198,3 +197,24 @@ export async function deleteSessionInDatabase(userId: number) {
     client.release();
   }
 }
+
+export async function userInformation(userId : number) {
+  const client = await pool.connect();
+  try {
+    // Check if the user exists
+    const result = await client.query("SELECT username, email FROM users WHERE id = $1", [userId]);
+    if (result.rows.length > 0) {
+      console.log("fetching user details failed User is not registered");
+      return [];
+    } 
+    const user = result.rows[0];
+    console.log("Session successfully deleted:", user);
+    return user;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error deleting session:", errorMessage);
+    return [];
+  } finally {
+    client.release();
+  }
+} 

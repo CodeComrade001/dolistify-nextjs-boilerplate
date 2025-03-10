@@ -1,11 +1,8 @@
 import CreateNewUserAccount from "@/app/component/backend_component/LoginBackend";
 import { encrypt, storeSession } from "@/app/lib/auth";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies()
-  
   
   const { userName, email, password } = await request.json();
   console.log("🚀 ~ POST ~ password:", password)
@@ -27,5 +24,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to store session" }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, user, sessionToken });
+  const response = NextResponse.json({ success: true });
+  response.cookies.set({
+    name: "session_token",
+    value: sessionToken,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+  console.log("🚀 ~ POST ~ response.cookies.set:", response.cookies)
+  return response;
 }

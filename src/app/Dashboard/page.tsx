@@ -45,6 +45,7 @@ interface DashboardPageProps {
    weeklyData: any;
    helperViewTab: any;
    userTaskQueryPath: (dashboardBtn: string, dashboardRoute: string) => void
+   sendingUserID: (id: number) => void
 }
 
 export default function DashboardPage({
@@ -55,6 +56,7 @@ export default function DashboardPage({
    weeklyData,
    helperViewTab,
    userTaskQueryPath,
+   sendingUserID,
 }: DashboardPageProps) {
    const [theme, setTheme] = useState('light');
    const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number, timeZone: string } | null>(null);
@@ -63,6 +65,85 @@ export default function DashboardPage({
    const [activeDashboardBtnRoute, setActiveDashboardBtnRoute] = useState("high_priority");
    console.log("🚀 ~ activeDashboardBtn:", activeDashboardBtn)
    console.log("🚀 ~ activeDashboardBtnRoute:", activeDashboardBtnRoute)
+   const [userId, setUserId] = useState<number | null>(null);
+   console.log("🚀 ~ userId:", userId)
+
+
+
+   const handleClick = (dashboardBtn: string, dashboardRoute: string) => {
+      console.log(`Dashboard page: ${dashboardBtn}, Dashboard route: ${dashboardRoute}`);
+      userTaskQueryPath(dashboardBtn, dashboardRoute);
+   };
+
+
+   function ThemeChange() {
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+   }
+
+   function dashboardRouteOptions(category: "personal" | "work" | "time_bound" | "completed" | "missed" | "repeated") {
+      switch (category) {
+         case "personal":
+            return {
+               routeOptions: ["High-Priority", "Primary Task", "Completed Task", "Missed Task", "Archived Task"],
+               activeRouteOptions: ["high_priority", "main", "completed", "missed", "archived"],
+            }
+         case "work":
+            return {
+               routeOptions: ["High-Priority", "Primary Task", "Completed Task", "Missed Task", "Archived Task"],
+               activeRouteOptions: ["high_priority", "main", "completed", "missed", "archived"],
+            }
+         case "time_bound":
+            return {
+               routeOptions: ["UpComing Tasks", "Deadline Task", "Missed Task", "Completed Task", "Archived Task", "Time Deadline Task", "Date Deadline Task"],
+               activeRouteOptions: ["upComing", "deadline", "missed", "completed", "archived", "time_deadline", "date_deadline"],
+            }
+         case "completed":
+            return {
+               routeOptions: ["Personal Task", "Work Task", "Time Bound Task"],
+               activeRouteOptions: ["personal", "work", "time_bound"],
+            }
+         case "missed":
+            return {
+               routeOptions: ["Personal Task", "Work Task", "Time Bound Task"],
+               activeRouteOptions: ["personal", "work", "time_bound"],
+            }
+         case "repeated":
+            return {
+               routeOptions: ["Personal Tasks", "Work Task", "Time bound Task", "High Priority Task", "Primary Task", "Missed Task", "Completed Task", "Archived Task"],
+               activeRouteOptions: ["personal", "work", "time_bound", "high_priority", "main", "missed", "completed", "archived"],
+            }
+      }
+   }
+   function userIdSender(receivedId: number) {
+      sendingUserID(receivedId)
+   }
+
+   userIdSender(userId as number)
+
+   const dashboardRouteOptionsQuery = dashboardRouteOptions(activeDashboardBtn);
+
+   useEffect(() => {
+      // Assuming document.cookie is "userId=17"
+      // Split the cookie string by semicolon (in case there are more cookies in the future)
+      const cookiesArray = document.cookie.split(";");
+      console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
+
+      // Find the cookie that starts with "userId="
+      const userIdCookie = cookiesArray.find(cookie => cookie.trim().startsWith("userId="));
+      console.log("🚀 ~ useEffect ~ userIdCookie:", userIdCookie)
+
+      // Extract the value and convert to a number
+      const userIdStr = userIdCookie ? userIdCookie.split("=")[1].trim() : null;
+      console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr)
+      const userIdNum = userIdStr ? Number(userIdStr) : null;
+      console.log("🚀 ~ useEffect ~ userIdNum:", userIdNum)
+      console.log("🚀 ~ useEffect ~ typeof(userIdNum):", typeof userIdNum)
+
+      // Set the state with the numeric value (or null)
+      setUserId(userIdNum);
+   }, []);
 
 
    useEffect(() => {
@@ -121,55 +202,6 @@ export default function DashboardPage({
 
       fetchWeatherData(); // Call the async function
    }, [coordinates]);
-
-   const handleClick = (dashboardBtn: string, dashboardRoute: string) => {
-      console.log(`Dashboard page: ${dashboardBtn}, Dashboard route: ${dashboardRoute}`);
-      userTaskQueryPath(dashboardBtn, dashboardRoute);
-   };
-
-
-   function ThemeChange() {
-      const newTheme = theme === 'light' ? 'dark' : 'light';
-      setTheme(newTheme);
-      localStorage.setItem('theme', newTheme);
-   }
-
-   function dashboardRouteOptions(category: "personal" | "work" | "time_bound" | "completed" | "missed" | "repeated") {
-      switch (category) {
-         case "personal":
-            return {
-               routeOptions: ["High-Priority", "Primary Task", "Completed Task", "Missed Task", "Archived Task"],
-               activeRouteOptions: ["high_priority", "main", "completed", "missed", "archived"],
-            }
-         case "work":
-            return {
-               routeOptions: ["High-Priority", "Primary Task", "Completed Task", "Missed Task", "Archived Task"],
-               activeRouteOptions: ["high_priority", "main", "completed", "missed", "archived"],
-            }
-         case "time_bound":
-            return {
-               routeOptions: ["UpComing Tasks", "Deadline Task", "Missed Task", "Completed Task", "Archived Task", "Time Deadline Task", "Date Deadline Task"],
-               activeRouteOptions: ["upComing", "deadline", "missed", "completed", "archived", "time_deadline", "date_deadline"],
-            }
-         case "completed":
-            return {
-               routeOptions: ["Personal Task", "Work Task", "Time Bound Task"],
-               activeRouteOptions: ["personal", "work", "time_bound"],
-            }
-         case "missed":
-            return {
-               routeOptions: ["Personal Task", "Work Task", "Time Bound Task"],
-               activeRouteOptions: ["personal", "work", "time_bound"],
-            }
-         case "repeated":
-            return {
-               routeOptions: ["Personal Tasks","Work Task" ,"Time bound Task", "High Priority Task", "Primary Task", "Missed Task", "Completed Task", "Archived Task"],
-               activeRouteOptions: ["personal","work" , "time_bound","high_priority", "main", "missed", "completed", "archived"],
-            }
-      }
-   }
-
-   const dashboardRouteOptionsQuery = dashboardRouteOptions(activeDashboardBtn);
 
    return (
       <div className={theme === 'light' ? "dashboard-body-whiteTheme" : 'dashboard-body-blackTheme'}>
@@ -471,7 +503,8 @@ export default function DashboardPage({
                               const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
                               console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                               setActiveDashboardBtnRoute(defaultRouteOption)
-                              handleClick("personal", activeDefaultRoute);
+
+                              handleClick("personal", activeDefaultRoute)
                            }}
                            className={activeDashboardBtn === "personal" ? "activeBtn" : ""}
                         >
@@ -686,12 +719,6 @@ export default function DashboardPage({
                            </span>
                            <h2>Repeated</h2>
                         </button>
-                        <div className="goal-option">
-                           <button><h2>Daily</h2></button>
-                           <button><h2>Weekly</h2></button>
-                           <button><h2>Monthly</h2></button>
-                           <button><h2>Custom</h2></button>
-                        </div>
                      </div>
                   </div>
                </div>

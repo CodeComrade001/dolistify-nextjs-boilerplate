@@ -26,9 +26,9 @@ async function testConnection() {
 testConnection();
 
 export default async function insertTask(
+   userId: number,
    dashboardBtn: string,
    dashboardRoute: string,
-   email: string,
    taskDetails: { title: string; subtasks: Array<{ id: number; description: string }>; status: Array<{ id: number; completed: boolean | null; missed: boolean | null }> },
    userDeadline?: string | number
 ): Promise<boolean> {
@@ -56,19 +56,17 @@ export default async function insertTask(
 
    try {
       // Step 1: Find the user ID based on email
-      const userQuery = 'SELECT id FROM all_users WHERE email = $1';
-      const userResult = await client.query(userQuery, [email]);
+      const userQuery = 'SELECT id FROM users WHERE id = $1';
+      const userResult = await client.query(userQuery, [userId]);
 
       if (userResult.rowCount === 0) {
-         console.error('User not found with email:', email);
+         console.error('User not found with email:', userId);
          return false;
       }
 
-      const userId = userResult.rows[0].id;
-
       // Step 2: Prepare and execute the query
       let taskQuery: string;
-      let taskValues: (string | number | object)[];
+      let taskValues: (string | number | boolean | object)[];
 
       if (userDeadline) {
 
@@ -115,6 +113,7 @@ export default async function insertTask(
 }
 
 export async function updateTaskInformation(
+   userId: number,
    dashboardBtn: string,
    validatedDashboardRoute: string,
    taskDetails: { title: string; subtasks: Array<{ id: number; description: string }>; status: Array<{ id: number; completed: boolean | null; missed: boolean | null }> }, // required
@@ -141,8 +140,8 @@ export async function updateTaskInformation(
    const client = await pool.connect();
    try {
       // Check if the ID exists
-      const existingTaskQuery = `SELECT task_data->>'subtasks' AS subtasks FROM ${dashboardBtnFormat} WHERE id = $1 AND ${validatedDashboardRoute} = $2`;
-      const existingTaskResult = await client.query(existingTaskQuery, [updatingIndex, true]);
+      const existingTaskQuery = `SELECT task_data->>'subtasks' AS subtasks FROM ${dashboardBtnFormat} WHERE id = $1 , user_id = $2 AND ${validatedDashboardRoute} = $3`;
+      const existingTaskResult = await client.query(existingTaskQuery, [updatingIndex, userId, true]);
       console.log("🚀 ~ initial task details:", existingTaskResult.rows);
 
       if (existingTaskResult.rows.length > 0) {
@@ -169,17 +168,17 @@ export async function updateTaskInformation(
                columnDeadline = "date_deadline";
             }
             if (dashboardBtnFormat === "repeated_task" && updateDeadline) {
-               updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${columnDeadline} = $2, time_bound = true WHERE id = $3 AND ${validatedDashboardRoute} = $4`;
-               updateTaskValues = [updatedTaskFormat, formattedDeadline, updatingIndex, true];
+               updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${columnDeadline} = $2, time_bound = true WHERE id = $3, user_id = $4 AND ${validatedDashboardRoute} = $5`;
+               updateTaskValues = [updatedTaskFormat, formattedDeadline, updatingIndex, userId, true];
             } else {
-               updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${columnDeadline} = $2 WHERE id = $3 AND ${validatedDashboardRoute} = $4`;
-               updateTaskValues = [updatedTaskFormat, formattedDeadline, updatingIndex, true];
+               updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${columnDeadline} = $2 WHERE id = $3, user_id = $4 AND ${validatedDashboardRoute} = $5`;
+               updateTaskValues = [updatedTaskFormat, formattedDeadline, updatingIndex, userId, true];
             }
 
          } else {
             // Update without deadline
-            updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1 WHERE id = $2 AND ${validatedDashboardRoute} = $3`;
-            updateTaskValues = [updatedTaskFormat, updatingIndex, true];
+            updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1 WHERE id = $2, user_id = $3 AND ${validatedDashboardRoute} = $4`;
+            updateTaskValues = [updatedTaskFormat, updatingIndex, userId, true];
          }
 
          // Execute the update query
@@ -199,7 +198,11 @@ export async function updateTaskInformation(
    }
 }
 
-export async function showSavedTaskSummaryView(dashboardBtn: string, dashboardRoute: string) {
+export async function showSavedTaskSummaryView(
+   userId: number,
+   dashboardBtn: string,
+   dashboardRoute: string
+) {
    let dashboardBtnFormat: string;
    let validatedDashboardRoute: string;
    if (dashboardBtn === "completed" || dashboardBtn === "missed") {
@@ -232,19 +235,8 @@ export async function showSavedTaskSummaryView(dashboardBtn: string, dashboardRo
 
    const client = await pool.connect();
    try {
-      const userEmail = "john.doe@example.com";
-      const userQuery = "SELECT id FROM all_users WHERE email = $1";
-      const userResult = await client.query(userQuery, [userEmail]);
-
-      if (userResult.rowCount === 0) {
-         console.log("User not found with email:", userEmail);
-         return false;
-      }
-
       let taskQuery: string;
-
-      const userId = userResult.rows[0].id;
-      if (validatedDashboardRoute === "time_deadline" || validatedDashboardRoute === "date_deadline" ) {
+      if (validatedDashboardRoute === "time_deadline" || validatedDashboardRoute === "date_deadline") {
          taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND ${validatedDashboardRoute} IS NOT NULL`;
       } else if (dashboardBtn === "completed_task") {
          taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND completed = true`;
@@ -277,7 +269,12 @@ export async function showSavedTaskSummaryView(dashboardBtn: string, dashboardRo
    }
 }
 
-export async function showSavedTaskDetailView(id?: number, dashboardBtn?: string, dashboardRoute?: string) {
+export async function showSavedTaskDetailView(
+   userId: number,
+   id?: number,
+   dashboardBtn?: string,
+   dashboardRoute?: string
+) {
 
    const dashboardBtnFormat = dashboardBtn === "" ? "personal_task" : `${dashboardBtn}_task`;
    const validatedDashboardRoute = dashboardRoute === "" ? "high_priority" : dashboardRoute;
@@ -313,7 +310,7 @@ export async function showSavedTaskDetailView(id?: number, dashboardBtn?: string
    try {
       let taskQuery: string;
       if (validatedDashboardRoute === "time_deadline" || validatedDashboardRoute === "date_deadline") {
-         taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks,task_data ->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 AND ${validatedDashboardRoute} IS NOT NULL`;
+         taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks,task_data ->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 , user_id = $2 AND ${validatedDashboardRoute} IS NOT NULL`;
       } else if (dashboardBtnFormat === "repeated_task" && ((validatedDashboardRoute === "missed" || validatedDashboardRoute === "completed"))) {
          taskQuery = `SELECT 
          rt.id, 
@@ -322,13 +319,13 @@ export async function showSavedTaskDetailView(id?: number, dashboardBtn?: string
          rt.task_data->>'status' AS status 
          FROM ${dashboardBtnFormat} rt
          JOIN repeated_task_status rts ON rt.id = rts.task_id
-       WHERE rts.${validatedDashboardRoute} = true AND rt.id = $1 
+       WHERE rts.${validatedDashboardRoute} = true AND rt.id = $1 , rt.user_id = $2
          `;
       } else {
-         taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks,task_data ->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 AND ${validatedDashboardRoute} = true`;
+         taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks,task_data ->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 , user_id = $2 AND ${validatedDashboardRoute} = true`;
       }
 
-      const taskResult = await client.query(taskQuery, [id]);
+      const taskResult = await client.query(taskQuery, [id, userId]);
       const row = taskResult.rows[0]; // Return the first row
       console.log("🚀 ~ showSavedTaskDetailView ~ row:", row);
       return row;
@@ -341,7 +338,11 @@ export async function showSavedTaskDetailView(id?: number, dashboardBtn?: string
    }
 }
 
-export async function taskPositionRequirement(dashboardBtn: string, dashboardRoute: string) {
+export async function taskPositionRequirement(
+   userId: number,
+   dashboardBtn: string,
+   dashboardRoute: string
+) {
 
    // Matching table label and table route
    const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
@@ -360,11 +361,11 @@ export async function taskPositionRequirement(dashboardBtn: string, dashboardRou
    try {
       let taskQuery: string;
       if (dashboardRoute === "time_deadline" || dashboardRoute === "date_deadline") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = 1 AND ${dashboardRoute} IS NOT NULL  ORDER BY timestamp ASC`
+         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = $1 AND ${dashboardRoute} IS NOT NULL  ORDER BY timestamp ASC`
       } else if (dashboardBtn === "completed_task") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardRoute} WHERE user_id = 1 AND completed = true  ORDER BY timestamp ASC`
+         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardRoute} WHERE user_id = $1 AND completed = true  ORDER BY timestamp ASC`
       } else if (dashboardBtn === "missed_task") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardRoute} WHERE user_id = 1 AND missed = true  ORDER BY timestamp ASC`
+         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardRoute} WHERE user_id = $1 AND missed = true  ORDER BY timestamp ASC`
       } else if (dashboardBtn === "repeated_task" && ((dashboardRoute === "missed" || dashboardRoute === "completed"))) {
          taskQuery = `SELECT 
          rt.id,  
@@ -374,10 +375,10 @@ export async function taskPositionRequirement(dashboardBtn: string, dashboardRou
        WHERE rts.${dashboardRoute} = true
          `;
       } else {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = 1 AND ${dashboardRoute} = true  ORDER BY timestamp ASC`
+         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = $1 AND ${dashboardRoute} = true  ORDER BY timestamp ASC`
       }
 
-      const taskResult = await client.query(taskQuery);
+      const taskResult = await client.query(taskQuery, [userId]);
       const row = taskResult.rows;
       return row;
 
@@ -391,6 +392,7 @@ export async function taskPositionRequirement(dashboardBtn: string, dashboardRou
 }
 
 export async function TaskAttributes(
+   userId: number,
    condition: "missed" | "completed" | "deleted",
    dashboardBtn: string,
    dashboardRoute: string,
@@ -420,7 +422,7 @@ export async function TaskAttributes(
       return false;
    }
 
-   const allowedRoutes = ["high_priority", "archived","work", "personal", "time_bound", "main", "repeated", "time_deadline", "date_deadline"];
+   const allowedRoutes = ["high_priority", "archived", "work", "personal", "time_bound", "main", "repeated", "time_deadline", "date_deadline"];
    if (!allowedRoutes.includes(validatedDashboardRoute)) {
       console.error(`Invalid column name: ${validatedDashboardRoute}`);
       return false;
@@ -429,8 +431,8 @@ export async function TaskAttributes(
    const client = await pool.connect();
    try {
       // Check if the ID exists
-      const existingTaskQuery = `SELECT id, task_data->>'subtasks' AS subtasks FROM ${dashboardBtnFormat} WHERE id = $1 AND ${validatedDashboardRoute} = $2`;
-      const existingTaskResult = await client.query(existingTaskQuery, [updatingIndex, true]);
+      const existingTaskQuery = `SELECT id, task_data->>'subtasks' AS subtasks FROM ${dashboardBtnFormat} WHERE id = $1, user_id = $2 AND ${validatedDashboardRoute} = $3`;
+      const existingTaskResult = await client.query(existingTaskQuery, [updatingIndex, userId, true]);
       console.log("🚀 ~ initial task details:", existingTaskResult.rows);
 
       const taskId = existingTaskResult.rows[0].id;
@@ -444,14 +446,14 @@ export async function TaskAttributes(
 
          if (dashboardBtnFormat === "repeated_task" && (validatedCondition === "missed" || validatedCondition === "completed")) {
             console.log("repeated task updating started")
-            const updateTaskAttributeQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1 WHERE id = $2 AND ${validatedDashboardRoute} = $3`;
-            const updateTaskAttributeValues = [updatedTaskFormat, updatingIndex, true];
+            const updateTaskAttributeQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1 WHERE id = $2 , user_id = $3 AND ${validatedDashboardRoute} = $4`;
+            const updateTaskAttributeValues = [updatedTaskFormat, updatingIndex, userId, true];
             const updateMainTable = await client.query(updateTaskAttributeQuery, updateTaskAttributeValues);
             console.log("🚀 ~ updateMainTable:", updateMainTable)
             if (updateMainTable) {
-               const updateTaskSecondaryQuery = `INSERT INTO repeated_task_status (task_id, ${validatedCondition}) VALUES ($1, $2)`;
+               const updateTaskSecondaryQuery = `INSERT INTO repeated_task_status (task_id, user_id, ${validatedCondition}) VALUES ($1, $2, $3)`;
 
-               const updateTaskSecondaryValues = [taskId, true];
+               const updateTaskSecondaryValues = [taskId, userId, true];
                const updateSecondaryTable = await client.query(updateTaskSecondaryQuery, updateTaskSecondaryValues);
                console.log("🚀 ~ updateSecondaryTable:", updateSecondaryTable)
                return true
@@ -460,8 +462,8 @@ export async function TaskAttributes(
             }
          } else {
             console.log("other  task updating started")
-            const updateTaskAttributeQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${validatedCondition} = $2 WHERE id = $3 AND ${validatedDashboardRoute} = $4`;
-            const updateTaskAttributeValues = [updatedTaskFormat, true, updatingIndex, true];
+            const updateTaskAttributeQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${validatedCondition} = $2 WHERE id = $3, user_id = $4 AND ${validatedDashboardRoute} = $5`;
+            const updateTaskAttributeValues = [updatedTaskFormat, true, updatingIndex, userId, true];
             const updateTaskCondition = await client.query(updateTaskAttributeQuery, updateTaskAttributeValues);
             console.log("🚀 ~ updateTaskCondition:", updateTaskCondition);
             return true;
@@ -473,14 +475,18 @@ export async function TaskAttributes(
       console.warn(`No task found with id ${updatingIndex} in ${dashboardBtnFormat}.`);
       return false;
    } catch (error: unknown) {
-      console.error("Error updating task condition:", error instanceof Error ? error.message : "Unknown error");
+      console.error("Error updating task condition for task attributes:", error instanceof Error ? error.message : "Unknown error");
       return false;
    } finally {
       client.release();
    }
 }
 
-export async function completeTaskDetails(dashboardBtn: string, dashboardRoute: string) {
+export async function completeTaskDetails(
+   userId: number,
+   dashboardBtn: string,
+   dashboardRoute: string
+) {
    const dashboardBtnFormat = `${dashboardBtn}_task`;
    const validatedDashboardRoute = dashboardRoute;
    console.log("🚀 ~ dashboardBtnFormat:", dashboardBtnFormat);
@@ -503,19 +509,18 @@ export async function completeTaskDetails(dashboardBtn: string, dashboardRoute: 
    try {
       let taskQuery: string;
       if (dashboardRoute === "time_deadline" || dashboardRoute === "date_deadline") {
-         taskQuery = `SELECT id,task_data->>'title' AS title , timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} IS NOT NULL AND deleted = true  ORDER BY id ASC`
-
+         taskQuery = `SELECT id,task_data->>'title' AS title , timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} IS NOT NULL ,user_id = $1 AND deleted = true  ORDER BY id ASC`
       } else if (dashboardBtnFormat === "repeated_task") {
-         taskQuery = `SELECT  id, task_data ->> 'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} = true AND deleted = true  ORDER BY timestamp ASC`
+         taskQuery = `SELECT  id, task_data ->> 'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} = true,user_id = $1 AND deleted = true  ORDER BY timestamp ASC`
       } else {
-         taskQuery = `SELECT  id, task_data ->> 'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} = true AND deleted = true  ORDER BY timestamp ASC`
+         taskQuery = `SELECT  id, task_data ->> 'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} = true,user_id = $1 AND deleted = true  ORDER BY timestamp ASC`
       }
 
-      const taskResult = await client.query(taskQuery);
+      const taskResult = await client.query(taskQuery, [userId]);
       const row = taskResult.rows;
       return row;
    } catch (error: unknown) {
-      console.error("Error updating task condition:", error instanceof Error ? error.message : "Unknown error");
+      console.error("Error updating task condition for complete task details:", error instanceof Error ? error.message : "Unknown error");
       return false;
    } finally {
       client.release();
