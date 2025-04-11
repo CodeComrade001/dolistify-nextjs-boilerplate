@@ -103,6 +103,22 @@
   touch-action: manipulation;
   cursor: pointer;
   height: 35px;
+  background-image: radial-gradient(
+      93% 87% at 87% 89%,
+      rgba(0, 0, 0, 0.23) 0%,
+      transparent 86.18%
+    ),
+    radial-gradient(
+      66% 66% at 26% 20%,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0) 69.79%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  box-shadow: inset -3px -3px 9px rgba(255, 255, 255, 0.25),
+    inset 0px 3px 9px rgba(255, 255, 255, 0.3),
+    inset 0px 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0px -8px 36px rgba(0, 0, 0, 0.3),
+    inset 0px 1px 5px rgba(255, 255, 255, 0.6), 2px 19px 31px rgba(0, 0, 0, 0.2);
 }
 
 .moveLeftAnimation,
@@ -112,29 +128,31 @@
 
 .moveRightAnimation {
   position: relative;
-  animation: moveRight 1s;
+  animation: moveRight 5s;
   left: 90px;
 }
 
 @keyframes moveRight {
-  0% {
+  to {
+    right: 0;
     transform: translateX(0);
   }
-  100% {
+  from {
     transform: translateX(100%);
+    left: 0;
   }
 }
 
 .moveLeftAnimation {
   animation: moveLeft 1s;
-  left:0;
+  left: 0;
 }
 
 @keyframes moveLeft {
-  0% {
+  from {
     transform: translateX(100%);
   }
-  100% {
+  to {
     transform: translateX(0);
   }
 }
@@ -336,7 +354,7 @@
 }
 
 .social_login__icon {
-  color: #2da8a8;
+  color: white;
   text-decoration: none;
   text-shadow: 0px 0px 8px #38d2d2;
 }
@@ -345,13 +363,12 @@
   transform: scale(1.5);
 }
 
-
 /* Error styles  */
 
 .errorText {
-  font-size:1.3em;
-  color:red;
-  font-weight:bolder;
+  font-size: 1.3em;
+  color: red;
+  font-weight: bolder;
   margin: 0;
 }
 
@@ -361,14 +378,14 @@
 
 .error_list > p {
   margin: 0;
-  font-size:1.3em;
-  color:red;
-  font-weight:bold;
+  font-size: 1.3em;
+  color: red;
+  font-weight: bold;
 }
 
-.error_list  ul {
-  color:red;
-  font-size:1.2em;
+.error_list ul {
+  color: red;
+  font-size: 1.2em;
   list-style: none;
-  font-weight:bold;
+  font-weight: bold;
 }

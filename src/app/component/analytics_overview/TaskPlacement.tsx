@@ -2,7 +2,8 @@
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
-export default async function taskPosition(id : number ,dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
+export default async function taskPosition(id: number, dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
+   console.log("🚀 ~ taskPosition ~ taskPosition:", taskPosition)
    let dashboardBtnFormat: string;
    let validatedDashboardRoute: string | undefined;
    if (dashboardBtn === "completed" || dashboardBtn === "missed") {
@@ -30,7 +31,8 @@ export default async function taskPosition(id : number ,dashboardBtn: string, da
    }
 
    try {
-      const result = await taskPositionRequirement(id , dashboardBtnFormat, validatedDashboardRoute);
+      const result = await taskPositionRequirement(id, dashboardBtnFormat, validatedDashboardRoute);
+      console.log("🚀 ~ taskPosition ~ result:", result)
 
       if (!result) {
          console.log("Error fetching task");
@@ -92,7 +94,7 @@ export default async function taskPosition(id : number ,dashboardBtn: string, da
             // Add the processed data to the result array
             result.push({ id, row, column });
          });
-
+         console.log("🚀 ~ taskAddedArray.forEach ~ result:", result)
          return result;
       })();
       return taskPosition;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DeletedTaskStyles from "../../styles/deletedTask.module.css";
-import { completeTaskDetails } from "../backend_component/TaskBackend";
+import { deletedTaskDetails } from "../backend_component/TaskBackend";
+import LoaderIcon from "../reusable_component/LoadingIcon";
 
 interface savedTaskDataType {
    id: number;
@@ -12,8 +13,8 @@ interface savedTaskDataType {
 
 export default function DeletedTask({
    id,
-} : {
-   id : number
+}: {
+   id: number
 }) {
    const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
    const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
@@ -21,7 +22,7 @@ export default function DeletedTask({
    const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "">("");
    const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated">("personal");
    const [activeDashboardRoute, setActiveDashboardRoute] = useState<"upComing" | "high_priority" | "main" | "archived" | "time_deadline" | "date_deadline">("high_priority");
-   const [tasks, setTasks] = useState<savedTaskDataType[] | null>(null);
+   const [tasks, setTasks] = useState<savedTaskDataType[]>([]);
    // State to control how many tasks to show (4 per load)
    // const [visibleCount, setVisibleCount] = useState(4);
    function handleSelection(selection: "dashboardGroup" | "dashboardRoute") {
@@ -29,6 +30,7 @@ export default function DeletedTask({
          prevSelection === selection ? "none" : selection
       ));
    }
+   const [taskIsLoading, setTaskIsLoading] = useState<boolean>(true)
 
    const handleOptionClick = (option: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") => {
       const dashboard = dashboardRouteOptions(option).activeDashboard;
@@ -97,24 +99,28 @@ export default function DeletedTask({
    function handleDeletedTaskUpdate(id: number, condition: "delete" | "restore") {
       console.log("🚀 ~ handleDeletedTaskUpdate ~ id:", id)
       console.log("🚀 ~ handleDeletedTaskUpdate ~ id:", condition)
-      
+
    }
 
    useEffect(() => {
-      async function fetchCompleteTaskDetails() {
+      async function fetchDeletedTaskDetails() {
          const dashboardBtn = activeDashboardBtn;
          const dashboardRoute = activeDashboardRoute;
          try {
-            const queryResult = await completeTaskDetails(id,dashboardBtn, dashboardRoute);
+            const queryResult = await deletedTaskDetails(id, dashboardBtn, dashboardRoute);
             if (!queryResult) {
                console.log("No saved task found");
-               return null;
+               setTaskIsLoading(false)
+               setTasks([]);
+               return;
             }
 
             if (Array.isArray(queryResult)) {
                // setTasks(queryResult.slice(0, visibleCount));
+               setTaskIsLoading(false)
                setTasks(queryResult);
             } else {
+               setTaskIsLoading(false)
                setTasks([queryResult]);
             }
          } catch (error) {
@@ -123,8 +129,10 @@ export default function DeletedTask({
          }
       }
 
-      fetchCompleteTaskDetails();
-   }, [id , activeDashboardBtn, activeDashboardRoute]);
+      fetchDeletedTaskDetails();
+   }, [id, activeDashboardBtn, activeDashboardRoute]);
+
+
 
 
    const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
@@ -140,7 +148,7 @@ export default function DeletedTask({
                   className={DeletedTaskStyles.dashboard_group_item}
                   onClick={() => handleSelection("dashboardGroup")}
                >
-                  <div className={DeletedTaskStyles.dashboard_selector}>{dashboard}</div>
+                  {dashboard}
                   <div className={DeletedTaskStyles.selector_icon}>
                      <svg
                         height="20"
@@ -178,7 +186,7 @@ export default function DeletedTask({
                   className={DeletedTaskStyles.dashboard_route_items}
                   onClick={() => handleSelection("dashboardRoute")}
                >
-                  <div className={DeletedTaskStyles.dashboard_selector}>{dashboardRoute}</div>
+                  {dashboardRoute}
                   <div className={DeletedTaskStyles.selector_icon}>
                      <svg
                         height="20"
@@ -230,13 +238,11 @@ export default function DeletedTask({
                {/* <th><h2>Status</h2></th> */}
             </div>
             <div className={DeletedTaskStyles.table_body}>
-               {tasks === null || tasks.length === 0 ? (
-                  <div className={DeletedTaskStyles.loader_container}>
-                     <div className={DeletedTaskStyles.loader}></div>
-                  </div>
-               ) : (
+               {taskIsLoading ? (
                   // Render only the tasks up to the visibleCount
-                  tasks.map((item, index) => (
+                  <LoaderIcon />
+               ) : (
+                  tasks?.map((item, index) => (
                      <div key={index} className={DeletedTaskStyles.each_task_container}>
                         <div className={DeletedTaskStyles.deleted_task_title}>{item.title}</div>
                         <div className={DeletedTaskStyles.deleted_task_time}>{getUserTime(item.timestamp)}</div>
@@ -273,8 +279,8 @@ export default function DeletedTask({
                            </button>
                         </div>
                      </div>
-                  ))
-               )}
+                  )))
+               }
             </div>
          </div>
       </div >

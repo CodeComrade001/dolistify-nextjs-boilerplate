@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import fullTaskView from "../styles/fullTaskView.module.css";
 import insertTask from "../component/backend_component/TaskBackend";
 import { redirect, useRouter } from "next/navigation";
+import HelperBar from "../component/reusable_component/helper_screen";
 
 interface newTaskDataType {
   title: string;
@@ -16,15 +17,18 @@ export default function AddNewTask() {
   const [save, setSave] = useState(false);
   const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
   const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "">("");
-  const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated">("personal");
+  const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated" | "">("");
   console.log("🚀 ~ AddNewTask ~ activeDashboardBtn:", activeDashboardBtn)
   const [activeDashboardRoute, setActiveDashboardRoute] = useState<"upComing" | "high_priority" | "main" | "archived" | "time_deadline" | "date_deadline" | "">("");
   console.log("🚀 ~ AddNewTask ~ activeDashboardRoute:", activeDashboardRoute)
   const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
   const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
-  const [userDeadline, setUserDeadline] = useState<string | number>("")
-  const [userId , setUserId] = useState<number | null > (null)
+  const [userDeadline, setUserDeadline] = useState<string>("")
+  const [userId, setUserId] = useState<number | null>(null)
   console.log("🚀 ~ AddNewTask ~ userId:", userId)
+  const [errorSolutionMap, setErrorSolutionMap] = useState<{
+    [key: number]: { error: string; solution: string };
+  }>({});
   // const [addingRow, setAddingRow] = useState(false);
   const [taskDetails, setTaskDetails] = useState<newTaskDataType>({
     title: "",
@@ -32,7 +36,26 @@ export default function AddNewTask() {
     status: [{ id: 1, completed: null, missed: null }],
   })
   console.log("🚀 ~ AddNewTask ~ userDeadline:", userDeadline)
+  console.log("🚀 ~ AddNewTask ~ typeof userDeadline:", typeof userDeadline)
   const router = useRouter();
+  const [theme, setTheme] = useState('light');
+
+  const addErrorSolution = (error: string, solution: string) => {
+    setErrorSolutionMap((prev) => {
+      const index = Object.keys(prev).length; // Use next available index.
+      const updatedMap = { ...prev, [index]: { error, solution } };
+
+      // Automatically remove this error–solution after 3 minutes (180000 ms)
+      setTimeout(() => {
+        setErrorSolutionMap((current) => {
+          const { [index]: removed, ...rest } = current;
+          return rest;
+        });
+      }, 1800);
+
+      return updatedMap;
+    });
+  }
 
   function handleSelection(selection: "dashboardGroup" | "dashboardRoute") {
     setActiveSelection((prevSelection) => (
@@ -113,15 +136,15 @@ export default function AddNewTask() {
     switch (category) {
       case "Personal Task":
         return {
-          routeOptions: ["high_priority Task", "main Task", "archived Task", "repeated Task"],
+          routeOptions: ["high_priority Task", "main Task", "archived Task"],
           activeDashboard: "personal",
-          activeRouteOptions: ["high_priority", "main", "archived", "repeated"],
+          activeRouteOptions: ["high_priority", "main", "archived"],
         }
       case "Work Task":
         return {
-          routeOptions: ["high_priority Task", "main Task", "archived Task", "repeated Task"],
+          routeOptions: ["high_priority Task", "main Task", "archived Task"],
           activeDashboard: "work",
-          activeRouteOptions: ["high_priority", "main", "archived", "repeated"],
+          activeRouteOptions: ["high_priority", "main", "archived"],
         }
       case "Time-bound Task":
         return {
@@ -131,9 +154,9 @@ export default function AddNewTask() {
         }
       case "Repeated Task":
         return {
-          routeOptions: ["Personal Tasks", "Work Task", "high_priority Task", "main Task", "archived Task", "Time Deadline Task", "Date Deadline Task"],
+          routeOptions: ["Personal Task", "Work Task", "main Task", "archived Task", "Time Deadline Task", "Date Deadline Task"],
           activeDashboard: "repeated",
-          activeRouteOptions: ["personal", "work", "high_priority", "main", "archived", "time_deadline", "date_deadline"],
+          activeRouteOptions: ["personal", "work", "main", "archived", "time_deadline", "date_deadline"],
         }
       case "":
         return {
@@ -151,7 +174,6 @@ export default function AddNewTask() {
   }
 
   const handleOptionClick = (option: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") => {
-    setUserDeadline("")
     const dashboard = dashboardRouteOptions(option).activeDashboard;
 
     if (dashboard !== "Time-bound Task") {
@@ -160,8 +182,11 @@ export default function AddNewTask() {
 
     setDashboardBtn(option);
     setDashboard(option);
+    setDashboardRoute("Task Category")
     setActiveDashboardBtn(dashboard as "personal" | "work" | "time_bound" | "repeated");
+    setActiveDashboardRoute("");
     setActiveSelection("none");
+    setUserDeadline("")
   };
 
   function handleCloseSavedTask() {
@@ -169,6 +194,57 @@ export default function AddNewTask() {
   }
 
   async function insertIntoDB() {
+    if (activeDashboardBtn === "") {
+      addErrorSolution(
+        "You have not selected a Task Group.",
+        "Please select a Task Group from the available options."
+      );
+      return
+    }
+    if (activeDashboardRoute === "") {
+      addErrorSolution(
+        "You have not selected a task category.",
+        "Please select a task category from the available options."
+      );
+      return
+    }
+
+    if (taskDetails.title.trim() === "") {
+      addErrorSolution(
+        "Task title cannot be empty.",
+        "Enter a valid title for your task."
+      );
+      return
+    }
+
+    if ((activeDashboardRoute === "date_deadline" || activeDashboardRoute === "time_deadline") &&
+      userDeadline.trim() == "") {
+      addErrorSolution(
+        "Deadline is invalid.",
+        "Enter a valid deadline (date or time) according to the task type."
+      );
+      return
+    }
+
+    taskDetails.subtasks.forEach((subtask, idx) => {
+      if (subtask.description.trim() === "") {
+        addErrorSolution(
+          `Subtask ${idx + 1} is empty.`,
+          "Fill in the description for each subtask."
+        );
+      }
+      return
+    });
+
+    if (userId === null) {
+      addErrorSolution(
+        "User not logged in.",
+        "Please log in to create a task."
+      );
+      return
+    }
+
+    // storing if no error occurs
     const sentDashboardBtn = activeDashboardBtn;
     console.log("🚀 ~ insertIntoDB ~ sentDashboardBtn:", sentDashboardBtn)
     const sentDashboardRoute = activeDashboardRoute;
@@ -189,61 +265,75 @@ export default function AddNewTask() {
       }))
     };
     console.log("🚀 ~ insertIntoDB ~ taskDetailsJSON:", taskDetailsJSON)
-
-    const isAnyRowEmpty = taskDetails.subtasks.some(row => row.description.trim() === "");
-    if (isAnyRowEmpty) {
-      setSubmitCondition("Empty Input");
-      setSave(false);
-      return;
-    }
-
-    if (isDeadlineValid(userDeadline) && userId !== null) {
-      const success = await insertTask(userId ,sentDashboardBtn, sentDashboardRoute, taskDetails, userDeadline);
-      setSubmitCondition(success ? "Successful" : "Failed");
-      setSave(false);
-      if (success) {
-        router.push("/Dashboard");
-      }
-    } else {
-      // Iterate through each row to insert each task individually
-      if (userId !== null) {
-        const success = await insertTask(userId ,sentDashboardBtn, sentDashboardRoute, taskDetails);
+    try {
+      if (isDeadlineValid(userDeadline) && userId !== null) {
+        const success = await insertTask(userId, sentDashboardBtn, sentDashboardRoute, taskDetails, userDeadline);
         setSubmitCondition(success ? "Successful" : "Failed");
         setSave(false);
         if (success) {
           router.push("/Dashboard");
         }
+      } else {
+        // Iterate through each row to insert each task individually
+        if (userId !== null) {
+          const success = await insertTask(userId, sentDashboardBtn, sentDashboardRoute, taskDetails);
+          setSubmitCondition(success ? "Successful" : "Failed");
+          setSave(false);
+          if (success) {
+            router.push("/Dashboard");
+          }
+        }
       }
+    } catch (error: unknown) {
+      console.log("🚀 ~ insertIntoDB ~ error:", error)
     }
   }
   const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
 
   useEffect(() => {
-        // Split the cookie string by semicolon (in case there are more cookies in the future)
-        const cookiesArray = document.cookie.split(";");
-        console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
-  
-        // Find the cookie that starts with "userId="
-        const userIdCookie = cookiesArray.find(cookie => cookie.trim().startsWith("userId="));
-        console.log("🚀 ~ useEffect ~ userIdCookie:", userIdCookie)
-  
-        // Extract the value and convert to a number
-        const userIdStr = userIdCookie ? userIdCookie.split("=")[1].trim() : null;
-        console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr)
-        const userIdNum = userIdStr ? Number(userIdStr) : null;
-        console.log("🚀 ~ useEffect ~ userIdNum:", userIdNum)
-        console.log("🚀 ~ useEffect ~ typeof(userIdNum):", typeof userIdNum)
-  
-        // Set the state with the numeric value (or null)
-        setUserId(userIdNum);
-     }, []);
+    // Split the cookie string by semicolon (in case there are more cookies in the future)
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+    const cookiesArray = document.cookie.split(";");
+    console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
+
+    // Find the cookie that starts with "userId="
+    const userIdCookie = cookiesArray.find(cookie => cookie.trim().startsWith("userId="));
+    console.log("🚀 ~ useEffect ~ userIdCookie:", userIdCookie)
+
+    // Extract the value and convert to a number
+    const userIdStr = userIdCookie ? userIdCookie.split("=")[1].trim() : null;
+    console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr)
+    const userIdNum = userIdStr ? Number(userIdStr) : null;
+    console.log("🚀 ~ useEffect ~ userIdNum:", userIdNum)
+    console.log("🚀 ~ useEffect ~ typeof(userIdNum):", typeof userIdNum)
+
+    // Set the state with the numeric value (or null)
+    setUserId(userIdNum);
+  }, []);
 
 
   return (
-    <div className={fullTaskView.container}>
-      <div className={fullTaskView.paper_folded_edge}>
-        <div className={fullTaskView.paper_first_folded}></div>
-        <div className={fullTaskView.paper_second_folded}></div>
+    <div className={`${fullTaskView.container} ${theme === 'light' ? fullTaskView.dashboard_body_whiteTheme : fullTaskView.dashboard_body_blackTheme}`}>
+      <div className={fullTaskView.helper_guide}>
+        {Object.keys(errorSolutionMap).map((key) => (
+          <div key={key}>
+            <div className={fullTaskView.helper_guide_error}>
+              <HelperBar
+                directlySentMessage={errorSolutionMap[Number(key)].error}
+                directSentMessageCategory={'warning'}
+              />
+            </div>
+            <div className={fullTaskView.helper_guide_solution}>
+              <HelperBar
+                directlySentMessage={errorSolutionMap[Number(key)].solution}
+                directSentMessageCategory={'message'}
+              />
+            </div>
+          </div>
+        ))}
       </div>
       <div className={fullTaskView.container_items}>
         <div className={fullTaskView.clip_container}>
@@ -382,6 +472,10 @@ export default function AddNewTask() {
             </div>
           </div>
           <div className={fullTaskView.grid_section}>
+            <div className={fullTaskView.paper_folded_edge}>
+              <div className={fullTaskView.paper_first_folded}></div>
+              <div className={fullTaskView.paper_second_folded}></div>
+            </div>
             <table className={fullTaskView.task_table}>
               <tbody className={fullTaskView.table_body}>
                 {taskDetails.subtasks.map((row, index) => (
@@ -450,4 +544,3 @@ export default function AddNewTask() {
     </div>
   );
 }
-

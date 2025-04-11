@@ -1,5 +1,6 @@
 import React from "react";
-import bodyGlobalStyle from "./styles/bobyDefault.module.css";
+import bodyGlobalStyle from "./styles/bodyDefault.module.css";
+import { NotifierProvider } from "./context/notificationContext";
 
 export const metadata = {
   title: 'Dolistify',
@@ -22,7 +23,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className={bodyGlobalStyle.body_global_style}>
-        <main>{children}</main>
+        <NotifierProvider>
+            <main>{children}</main>
+        </NotifierProvider>
       </body>
     </html>
   );

@@ -10,17 +10,12 @@
   /* No filter here so children remain sharp */
 }
 
-/* Create a pseudo-element for the background */
-.body_section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-image: url("../../../public/background images/AddNew task.png");
-  background-size: cover;
-  background-position: center;
-  filter: blur(3px); /* Blur applied only to this pseudo-element */
-  z-index: -1; /* Ensure it stays behind the content */
+.dashboard_body_whiteTheme {
+  background-color: #fff;
 }
+
+.dashboard_body_blackTheme {
+  background-color: #2e2e2e;
+}
+
+/* Create a pseudo-element for the background */

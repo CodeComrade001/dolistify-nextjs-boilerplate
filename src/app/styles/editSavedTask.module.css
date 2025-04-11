@@ -7,6 +7,59 @@
   border-radius: 20px;
 }
 
+.dashboard_body_whiteTheme > * button {
+  color: #fff;
+  background-color: #38d2d2;
+  background-image: radial-gradient(
+      93% 87% at 87% 89%,
+      rgba(0, 0, 0, 0.23) 0%,
+      transparent 86.18%
+    ),
+    radial-gradient(
+      66% 66% at 26% 20%,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0) 69.79%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  box-shadow: inset -3px -3px 9px rgba(255, 255, 255, 0.25),
+    inset 0px 3px 9px rgba(255, 255, 255, 0.3),
+    inset 0px 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0px -8px 36px rgba(0, 0, 0, 0.3),
+    inset 0px 1px 5px rgba(255, 255, 255, 0.6), 2px 19px 31px rgba(0, 0, 0, 0.2);
+  border-radius: 1em;
+  font-weight: bolder;
+  border: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.dashboard_body_whiteTheme > * button:hover {
+  transition-duration: 0.4s;
+  background-color: #fff;
+  box-shadow: 0px 2px 10px 5px #1abc9c;
+  color: #000;
+}
+.dashboard_body_blackTheme > * button {
+  color: #fff;
+  background-color: #2e2e2e;
+  box-shadow: 0px 2px 10px 5px #1abc9c;
+  border: 0;
+  border-radius: 10px;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.dashboard_body_blackTheme > * button:hover {
+  transition-duration: 0.4s;
+  background-color: #fff;
+  box-shadow: 0px 2px 10px 5px #1abc9c;
+  color: #000;
+}
+
 .container_items {
   height: 100%;
   padding: 10px;

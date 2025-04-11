@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import editSavedTask from "../styles/editSavedTask.module.css";
 import { showSavedTaskDetailView, updateTaskInformation } from "../component/backend_component/TaskBackend";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 interface savedTaskDataType {
   title: string;
@@ -22,21 +22,38 @@ export default function EditSavedTask({
   const [savedTask, setSavedTask] = useState<savedTaskDataType>();
   const [editedTask, setEditedTask] = useState<savedTaskDataType>();
   const [savedTaskStatus, setSavedTaskStatus] = useState<string>("Update");
+  const [deletedSubtasks, setDeletedSubtasks] = useState<number>(0)
   const [missedTask, setMissedTask] = useState("");
+  console.log("🚀 ~ missedTask:", missedTask)
   const [completedTask, setCompletedTask] = useState("");
+  console.log("🚀 ~ completedTask:", completedTask)
   const [userId, setUserId] = useState<null | number>(null)
   console.log("🚀 ~ userId:", userId)
-
+  const [theme, setTheme] = useState('light');
+  const router = useRouter();
 
   const addNewTaskRow = (prevTask: savedTaskDataType | undefined, index: number): savedTaskDataType | undefined => {
     if (!prevTask) return undefined;
     if (index < 0 || index >= prevTask.subtasks.length) {
       console.log("Invalid index for completed or missed.");
     }
-    const newTask = { id: prevTask.subtasks.length + 1, description: "" };
-    const newStatus = { id: prevTask.status.length + 1, completed: null, missed: null };
-    return { ...prevTask, subtasks: [...prevTask.subtasks, newTask], status: [...prevTask.status, newStatus] };
+
+    // Calculate the maximum id among existing subtasks; default to 0 if none exist.
+    const lastMaxId = prevTask.subtasks.reduce((max, task) => Math.max(max, task.id), 0);
+    console.log("🚀 ~ addNewTaskRow ~ lastMaxId:", lastMaxId)
+    const newTask = { id: lastMaxId + 1, description: "" };
+
+    // Similarly, calculate the maximum id for status entries.
+    const lastMaxStatusId = prevTask.status.reduce((max, stat) => Math.max(max, stat.id), 0);
+    const newStatus = { id: lastMaxStatusId + 1, completed: null, missed: null };
+
+    return {
+      ...prevTask,
+      subtasks: [...prevTask.subtasks, newTask],
+      status: [...prevTask.status, newStatus]
+    };
   };
+
 
   const addExtraInputColumn = (e: React.KeyboardEvent, index: number) => {
     console.log("🚀 ~ addExtraInputColumn ~ e.Key:", e.key)
@@ -48,6 +65,7 @@ export default function EditSavedTask({
   };
 
   const deleteTaskRow = (prevTask: savedTaskDataType | undefined, index: number): savedTaskDataType | undefined => {
+    setDeletedSubtasks(deletedSubtasks + 1)
     if (!prevTask) return undefined;
 
     if (index < 0 || index >= prevTask.subtasks.length) {
@@ -76,24 +94,29 @@ export default function EditSavedTask({
     setEditedTask((prevTask) => deleteTaskRow(prevTask, index))
   };
 
-  const updateSavedTask = async (taskId: number) => {
-    if (!editedTask) return;
+  const updateSavedTask = useCallback(async (taskId: number) => {
+    console.log("🚀 ~ updateSavedTask ~ updateSavedTask:", updateSavedTask)
+    if (!editedTask && userId !== null) return;
     try {
       setSavedTaskStatus("Saving task...")
       const updatingId = taskId;
       const updatedTaskDetails = editedTask;
-      const updatingTask = await updateTaskInformation(dashboardBtn, dashboardRoute, updatedTaskDetails, updatingId)
+      console.log("updating the task now")
+      const updatingTask = await updateTaskInformation(userId as number, dashboardBtn, updatedTaskDetails as savedTaskDataType, updatingId)
+      console.log("finished updating the task")
+      console.log("updating the task now")
+      console.log("🚀 ~ updateSavedTask ~ updatingTask:", updatingTask)
       if (updatingTask) {
         setSavedTaskStatus("Updating successful");
+        router.push("/Dashboard")
       }
-      setSavedTaskStatus("Updating failed");
     } catch (error: unknown) {
       setSavedTaskStatus("Updating Failed");
       const errorMessage = (error instanceof Error) ? error.message : "unknown Error";
       console.log("Error send Task Details", errorMessage);
     }
 
-  };
+  }, [dashboardBtn, editedTask, router, userId]);
 
   const completeTaskRow = (prevTask: savedTaskDataType | undefined, index: number, indicator: "completeTaskIndicator") => {
     if (!prevTask) return undefined;
@@ -174,6 +197,10 @@ export default function EditSavedTask({
   useEffect(() => {
     // Assuming document.cookie is "userId=17"
     // Split the cookie string by semicolon (in case there are more cookies in the future)
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     const cookiesArray = document.cookie.split(";");
     console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
 
@@ -228,7 +255,7 @@ export default function EditSavedTask({
     return () => {
       isMounted = false;
     };
-  }, [taskId, dashboardBtn, dashboardRoute]);
+  }, [userId, taskId, dashboardBtn, dashboardRoute]);
 
 
   function taskIndicator(receivedClassName: "missedTaskIndicator" | "completeTaskIndicator") {
@@ -244,7 +271,7 @@ export default function EditSavedTask({
       {
         (savedTask && taskId !== undefined) &&
         (
-          <div key={taskId} className={editSavedTask.container}>
+          <div key={taskId} className={`${editSavedTask.container} ${theme === 'light' ? editSavedTask.dashboard_body_whiteTheme : editSavedTask.dashboard_body_blackTheme}`}>
             <div className={editSavedTask.paper_folded_edge}>
               <div className={editSavedTask.paper_first_folded}></div>
               <div className={editSavedTask.paper_second_folded}></div>
@@ -270,20 +297,23 @@ export default function EditSavedTask({
                 <div className={editSavedTask.moreTitleDetails}>
                   {/* Show Completed Task */}
                   <div className={editSavedTask.complete_task_count}>
-                    Completed
+                    Completed : {editedTask?.status.filter(task => task.completed).length}
                   </div>
                   {/* Show Missed Task */}
                   <div className={editSavedTask.missed_task_count}>
-                    Missed
+                    Missed :  {editedTask?.status.filter(task => task.missed).length}
+
                   </div>
                   {/* Show Missed Task */}
                   <div className={editSavedTask.delete_task_count}>
-                    Deleted
+                    Deleted : {deletedSubtasks}
                   </div>
 
                   {/* Show Remaining Task Not Completed */}
                   <div className={editSavedTask.editing_items}>
-                    Remaining
+                    Active : {editedTask !== undefined && editedTask?.status.length -
+                      (editedTask?.status.filter(task => task.completed).length +
+                        editedTask?.status.filter(task => task.missed).length)}
                   </div>
 
                   {/* Input for Task Title */}
@@ -327,7 +357,7 @@ export default function EditSavedTask({
                                     `}
                         >
                           <th className={editSavedTask.mark}>
-                            <div className={editSavedTask.taskCount}>{index}</div>
+                            <div className={editSavedTask.taskCount}>{index + 1}</div>
                           </th>
                           <td className={editSavedTask.user_text}>
                             <input

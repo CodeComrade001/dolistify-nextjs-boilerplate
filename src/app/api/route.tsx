@@ -1,6 +1,4 @@
 "use server";
-import { fetchWeatherApi } from 'openmeteo';
-
 interface Params {
   latitude: number;
   longitude: number;

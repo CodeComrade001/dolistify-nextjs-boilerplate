@@ -1,0 +1,202 @@
+.container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  height: 10%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: white;
+}
+
+.title > div {
+  color: black;
+  font-size: 1.4em;
+  height: fit-content;
+}
+
+.header {
+  height: 20%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.header > * {
+  padding: 5px 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: black;
+  background-color: white;
+}
+
+.complete_indicator {
+  color: green;
+}
+
+.missed_indicator {
+  color: red;
+}
+
+.active_indicator {
+  color: black;
+}
+
+.table_container {
+  height: 70%;
+}
+
+.task_table {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.task_table > * {
+  height: 30px;
+}
+
+.content {
+  height: 45px;
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: background-color 0.3s;
+}
+
+.content:hover {
+  background-color: #f1f1f1;
+}
+
+.content > div:nth-child(1) {
+  flex: 5%;
+}
+
+.content > div:nth-child(2) {
+  flex: 95%;
+}
+
+.mark {
+  width: fit-content;
+  height: fit-content;
+  text-align: center;
+  font-weight: bolder;
+  color: #5f6368;
+  padding: 10px;
+}
+
+.taskCount {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+.user_text {
+  margin-left: 10px;
+  height: 40px;
+  width: 100%;
+  padding: 0px 0px;
+  color: #333;
+  display: flex;
+  word-wrap: break-word;
+}
+
+.user_input {
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 5px 10px;
+  border: none;
+  flex: 1;
+  background-color: inherit;
+  width: inherit;
+  transition: border-color 0.3s ease;
+  margin: 0;
+}
+
+.user_input:focus {
+  font-size: 1.2em;
+  outline: none;
+  font-weight: bold;
+}
+
+.user_missed,
+.user_complete {
+  width: 40px;
+  height: fit-content;
+  text-align: center;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 1.2rem;
+  color: #888;
+  transition: color 0.3s;
+}
+
+.user_delete {
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #888;
+  transition: color 0.3s;
+  padding: 5px;
+}
+
+.user_delete button > svg {
+  height: 20px;
+  width: 20px;
+}
+
+.missedIndicator {
+  background-color: #ffb3b3;
+  color: #ffb3b3;
+}
+
+.completeIndicator {
+  background-color: #b3ffb3;
+  color: #b3ffb3;
+}
+
+.user_missed:hover {
+  color: #ff5c5c;
+}
+
+.user_complete:hover {
+  color: #4caf50;
+}
+
+.loader_container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  height: fit-content;
+  width: fit-content;
+  border: none;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 1.7rem;
+  background: linear-gradient(90deg, #000 50%, #0000 0) right/200% 100%;
+  animation: l21 2s infinite linear;
+}
+
+.loader::before {
+  content: "Loading Task...";
+  color: #0000;
+  background: inherit;
+  background-image: linear-gradient(90deg, #fff 50%, #000 0);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+

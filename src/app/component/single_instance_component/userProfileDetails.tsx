@@ -4,10 +4,6 @@ import Profile from "../../../../public/images/profile.png";
 import Image from "next/image";
 import GetUserDetails from "../backend_component/Profile";
 
-interface UserDetails {
-   username: string;
-   email: string;
-}
 
 export default function ProfileDetails({
    id,
@@ -22,24 +18,11 @@ export default function ProfileDetails({
    useEffect(() => {
       async function getUserDetails(index: number) {
          try {
-            const userFetchedDetails = GetUserDetails(index);
-
-            const userDetailsPromise = new Promise((resolve) => {
-               resolve(userFetchedDetails);
-            });
-
-            userDetailsPromise
-               .then((value) => {
-                  console.log("🚀 ~ .then ~ typeof value:", typeof value)
-                  const { username, email } = value;
-                  console.log("🚀 ~ userDetailsPromise.then ~ email:", email);
-                  console.log("🚀 ~ userDetailsPromise.then ~ username:", username);
-                  setUserDetails({ username, email });
-               })
-               .catch((error) => {
-                  console.error("Error fetching user details:", error);
-                  // Handle the error appropriately
-               });
+            const userFetchedDetails = await GetUserDetails(index);
+            console.log("🚀 ~ getUserDetails ~ userFetchedDetails:", userFetchedDetails)
+            if (userFetchedDetails) {
+               setUserDetails(userFetchedDetails);
+            } 
          } catch (error: unknown) {
             console.log("error fetching username and email", error)
          }

@@ -18,6 +18,67 @@
   flex-direction: row;
 }
 
+.dashboard {
+  font-size: 1.2em;
+}
+
+.dashboard_group_item {
+  border: none;
+  width: 100%;
+  flex: 1;
+  gap: 5px;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  position: relative;
+  height: 40px;
+  width: 250px;
+  font-weight: bolder;
+  font-size: 1.1rem;
+  flex: 1;
+  text-align: left;
+  justify-content: space-between;
+}
+
+.selector_icon {
+  font-weight: bolder;
+  font-size: 1rem;
+}
+
+.group_selector_container {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  /* width: 100%; */
+  font-size: 1rem;
+}
+
+.dashboard_options {
+  padding: 7px 0px 7px 10px;
+  font-size: 1rem;
+  font-weight: bolder;
+  text-align: left;
+  width: 250px;
+  border-radius: 10px;
+}
+
+.editing_items {
+  height: 100%;
+  position: relative;
+}
+
+.editing_new_title {
+  height: 30px;
+}
+
+.close_task {
+  height: 40px;
+  font-size: 1rem;
+  width: 80px;
+  border: none;
+}
+
 .barChart_insight {
   display: flex;
   justify-content: center;
@@ -44,7 +105,7 @@
   border-radius: 50%;
   height: 15px;
   width: 15px;
-  background-color: yellow;
+  background-color: blue;
   margin-right: 5px;
 }
 
@@ -61,6 +122,14 @@
   width: 15px;
   border-radius: 50%;
   background-color: red;
+  margin-right: 5px;
+}
+
+.deleted_color {
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background-color: #7f8c8d;
   margin-right: 5px;
 }
 
@@ -102,7 +171,7 @@
 }
 
 .pieChart_diagram {
-  flex:1;
+  flex: 1;
   padding: 10px;
   display: flex;
   justify-content: center;
@@ -111,5 +180,5 @@
 
 .pieChart_labelling {
   padding: 10px;
-  height:fit-content;
+  height: fit-content;
 }

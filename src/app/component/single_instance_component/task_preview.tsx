@@ -19,13 +19,15 @@ interface savedTaskDataType {
 }
 
 export default function TaskDisplay({
-   id,
+   userId,
    dashboardBtn,
    dashboardRoute,
+   sendingTaskPreviewPath,
 }: {
-   id : number
+   userId: number
    dashboardBtn: string;
    dashboardRoute: string;
+   sendingTaskPreviewPath: (sendUserId: number, sentTaskId: number, sentDashboardBtn: string) => void;
 }) {
    const [tasks, setTasks] = useState<TaskQueryResult[]>([]);
    const [taskStyle, setTaskStyle] = useState<{ [key: number]: React.CSSProperties }>({});
@@ -34,22 +36,25 @@ export default function TaskDisplay({
 
    const setTaskPlacement = useCallback(async (id: number): Promise<React.CSSProperties> => {
       try {
-         const taskPositionArray = (await taskPosition(id ,dashboardBtn, dashboardRoute)) || [];
+         const taskPositionArray = (await taskPosition(userId, dashboardBtn, dashboardRoute)) || [];
+         console.log("🚀 ~ setTaskPlacement ~ taskPositionArray:", taskPositionArray)
          if (!Array.isArray(taskPositionArray)) {
-            console.error("Invalid taskPositionArray");
+            console.error("Invalid taskPositionArray"); 
             return {};
          }
+         // ibgeigngbebigbe
          const item = taskPositionArray.find((pos) => pos.id === id);
          return item ? { gridRowStart: item.row, gridColumnStart: item.column } : {};
       } catch (error) {
          console.error("Error setting task placement:", error);
          return {};
       }
-   }, [dashboardBtn, dashboardRoute])
+   }, [dashboardBtn, dashboardRoute, userId])
 
    const fetchTasksSummaryView = useCallback(async (dashboardBtn: string, dashboardRoute: string) => {
       try {
-         const queryResult = await showSavedTaskSummaryView(id ,dashboardBtn, dashboardRoute);
+         setTasks([])
+         const queryResult = await showSavedTaskSummaryView(userId, dashboardBtn, dashboardRoute);
          if (Array.isArray(queryResult)) {
             setTasks(queryResult);
             const styles = await Promise.all(
@@ -65,7 +70,7 @@ export default function TaskDisplay({
          console.error("Error fetching tasks:", error);
          setTasks([]);
       }
-   }, [id,setTaskPlacement]);
+   }, [userId, setTaskPlacement]);
 
    const handleTaskUpdate = async (taskId: number, condition: "deleted" | "missed" | "completed") => {
       console.log("🚀 ~ handleTaskUpdate ~ taskId:", taskId)
@@ -85,7 +90,7 @@ export default function TaskDisplay({
 
    const fetchFullTask = useCallback(async (taskId: number, dashboardBtn: string, dashboardRoute: string) => {
       try {
-         const savedTaskArray = await showSavedTaskDetailView( id ,taskId, dashboardBtn, dashboardRoute);
+         const savedTaskArray = await showSavedTaskDetailView(userId, taskId, dashboardBtn, dashboardRoute);
          console.log("🚀 ~ fetchFullTask ~ savedTaskArray:", savedTaskArray)
 
          if (!savedTaskArray) {
@@ -106,7 +111,7 @@ export default function TaskDisplay({
          console.error("Error Fetching full Task:", error);
          return null;
       }
-   }, [id])
+   }, [userId])
 
 
    function formatTimestamp(timestamp: string): string {
@@ -145,7 +150,7 @@ export default function TaskDisplay({
                };
 
                console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
-               const result = await TaskAttributes(id,condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
+               const result = await TaskAttributes(userId, condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
                console.log(result ? "successful set task condition" : "failed to set task condition");
                return true;
             }
@@ -163,11 +168,11 @@ export default function TaskDisplay({
                };
                console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
 
-               const result = await TaskAttributes(id,condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
+               const result = await TaskAttributes(userId, condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
                console.log(result ? "successful set task condition" : "failed to set task condition");
                return true;
             } else {
-               const result = await TaskAttributes(id,condition, dashboardBtn, dashboardRoute, taskDetails, taskId);
+               const result = await TaskAttributes(userId, condition, dashboardBtn, dashboardRoute, taskDetails, taskId);
                console.log("🚀 ~ taskDetails:", taskDetails);
                console.log(result ? "successful set task condition" : "failed to set task condition");
                return true;
@@ -177,6 +182,10 @@ export default function TaskDisplay({
          console.error("Error updating task condition:", error instanceof Error ? error.message : "Unknown error");
          return false;
       }
+   }
+
+   function sendTaskPreviewQuery(sendUserId: number, sentTaskId: number, sentDashboardBtn: string) {
+      sendingTaskPreviewPath(sendUserId, sentTaskId, sentDashboardBtn)
    }
 
    useEffect(() => {
@@ -202,6 +211,7 @@ export default function TaskDisplay({
                      data-key={task.id}
                      className={taskDisplay.new_task_position}
                      style={taskStyle[task.id] || {}}
+                     onClick={() => sendTaskPreviewQuery(userId, task.id, dashboardBtn)}
                   >
                      <div className={taskDisplay.new_task_content}>
                         <div className={taskDisplay.task_details}>
@@ -210,7 +220,7 @@ export default function TaskDisplay({
                            </div>
                            <div className={taskDisplay.task_title}>{task.title}</div>
                         </div>
-                        <div  className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn_option_container : taskDisplay.options_container}`}>
+                        <div className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn_option_container : taskDisplay.options_container}`}>
                            <div className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.main_button_container : taskDisplay.top_row}`}>
                               <button
                                  title="View Task"
@@ -245,7 +255,7 @@ export default function TaskDisplay({
                                  </svg>
                               </button>
                            </div>
-                           <div className={ `${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_bottom_row : taskDisplay.bottom_row}`}>
+                           <div className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_bottom_row : taskDisplay.bottom_row}`}>
                               <button
                                  title="failed Task"
                                  className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
