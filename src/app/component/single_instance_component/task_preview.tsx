@@ -42,7 +42,6 @@ export default function TaskDisplay({
             console.error("Invalid taskPositionArray"); 
             return {};
          }
-         // ibgeigngbebigbe
          const item = taskPositionArray.find((pos) => pos.id === id);
          return item ? { gridRowStart: item.row, gridColumnStart: item.column } : {};
       } catch (error) {
