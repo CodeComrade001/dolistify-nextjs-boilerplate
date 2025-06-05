@@ -5,17 +5,6 @@
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-image: conic-gradient(
-    green 0%,
-    green 27.78%,
-    red 27.78%,
-    red 41.67%,
-    #ffa500 41.67%,
-    #ffa500 55.56%,
-    #001f54 55.56%,
-    #001f54 100%
-  );
-
   border-radius: 50%;
 }
 

@@ -1,0 +1,21 @@
+.body_section {
+  position: relative; /* Establish positioning context */
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* No filter here so children remain sharp */
+}
+
+.dashboard_body_whiteTheme {
+  background-color: #fff;
+}
+
+.dashboard_body_blackTheme {
+  background-color: #2e2e2e;
+}
+
+/* Create a pseudo-element for the background */

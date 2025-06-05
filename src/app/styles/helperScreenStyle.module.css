@@ -5,17 +5,13 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  font-weight: light;
-  justify-items: space-between;
   font-size: 1rem;
-  font-weight: light;
-  text-shadow: 1px 1px #00040a;
   transition: 0.5s;
   cursor: pointer;
 }
 
 .container:hover {
-  background-color: rgba(7, 149, 66, 0.35);
+  /* background-color: rgba(7, 149, 66, 0.35); */
   transition: 0.5s;
 }
 
@@ -28,9 +24,11 @@
 .text {
   color: inherit;
   flex: 1;
+  font-size: 1.3em;
+  font-weight: bolder;
 }
 
-.icon { 
+.icon {
   padding: 5px;
   height: fit-content;
   width: fit-content;
