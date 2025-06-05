@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import React, { useEffect, useState } from "react";
 import fullTaskView from "../styles/fullTaskView.module.css";
@@ -18,14 +18,10 @@ export default function AddNewTask() {
   const [activeSelection, setActiveSelection] = useState<"none" | "dashboardGroup" | "dashboardRoute">("none");
   const [dashboardBtn, setDashboardBtn] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "">("");
   const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "repeated" | "">("");
-  console.log("🚀 ~ AddNewTask ~ activeDashboardBtn:", activeDashboardBtn)
   const [activeDashboardRoute, setActiveDashboardRoute] = useState<"upComing" | "high_priority" | "main" | "archived" | "time_deadline" | "date_deadline" | "">("");
-  console.log("🚀 ~ AddNewTask ~ activeDashboardRoute:", activeDashboardRoute)
   const [dashboard, setDashboard] = useState<"Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task" | "Task Group">("Task Group");
   const [dashboardRoute, setDashboardRoute] = useState<"high_priority Task" | "main Task" | "Deadline Task" | "archived Task" | "Task Category">("Task Category");
   const [userDeadline, setUserDeadline] = useState<string>("")
-  const [userId, setUserId] = useState<number | null>(null)
-  console.log("🚀 ~ AddNewTask ~ userId:", userId)
   const [errorSolutionMap, setErrorSolutionMap] = useState<{
     [key: number]: { error: string; solution: string };
   }>({});
@@ -36,7 +32,6 @@ export default function AddNewTask() {
     status: [{ id: 1, completed: null, missed: null }],
   })
   console.log("🚀 ~ AddNewTask ~ userDeadline:", userDeadline)
-  console.log("🚀 ~ AddNewTask ~ typeof userDeadline:", typeof userDeadline)
   const router = useRouter();
   const [theme, setTheme] = useState('light');
 
@@ -48,10 +43,11 @@ export default function AddNewTask() {
       // Automatically remove this error–solution after 3 minutes (180000 ms)
       setTimeout(() => {
         setErrorSolutionMap((current) => {
-          const { [index]: removed, ...rest } = current;
-          return rest;
+          const next = { ...current };
+          delete next[index];
+          return next;
         });
-      }, 1800);
+      }, 180000);
 
       return updatedMap;
     });
@@ -236,14 +232,6 @@ export default function AddNewTask() {
       return
     });
 
-    if (userId === null) {
-      addErrorSolution(
-        "User not logged in.",
-        "Please log in to create a task."
-      );
-      return
-    }
-
     // storing if no error occurs
     const sentDashboardBtn = activeDashboardBtn;
     console.log("🚀 ~ insertIntoDB ~ sentDashboardBtn:", sentDashboardBtn)
@@ -266,8 +254,8 @@ export default function AddNewTask() {
     };
     console.log("🚀 ~ insertIntoDB ~ taskDetailsJSON:", taskDetailsJSON)
     try {
-      if (isDeadlineValid(userDeadline) && userId !== null) {
-        const success = await insertTask(userId, sentDashboardBtn, sentDashboardRoute, taskDetails, userDeadline);
+      if (isDeadlineValid(userDeadline)) {
+        const success = await insertTask(sentDashboardBtn, sentDashboardRoute, taskDetails, userDeadline);
         setSubmitCondition(success ? "Successful" : "Failed");
         setSave(false);
         if (success) {
@@ -275,13 +263,11 @@ export default function AddNewTask() {
         }
       } else {
         // Iterate through each row to insert each task individually
-        if (userId !== null) {
-          const success = await insertTask(userId, sentDashboardBtn, sentDashboardRoute, taskDetails);
-          setSubmitCondition(success ? "Successful" : "Failed");
-          setSave(false);
-          if (success) {
-            router.push("/Dashboard");
-          }
+        const success = await insertTask(sentDashboardBtn, sentDashboardRoute, taskDetails);
+        setSubmitCondition(success ? "Successful" : "Failed");
+        setSave(false);
+        if (success) {
+          router.push("/Dashboard");
         }
       }
     } catch (error: unknown) {
@@ -296,22 +282,6 @@ export default function AddNewTask() {
     if (savedTheme) {
       setTheme(savedTheme);
     }
-    const cookiesArray = document.cookie.split(";");
-    console.log("🚀 ~ useEffect ~ cookiesArray:", cookiesArray)
-
-    // Find the cookie that starts with "userId="
-    const userIdCookie = cookiesArray.find(cookie => cookie.trim().startsWith("userId="));
-    console.log("🚀 ~ useEffect ~ userIdCookie:", userIdCookie)
-
-    // Extract the value and convert to a number
-    const userIdStr = userIdCookie ? userIdCookie.split("=")[1].trim() : null;
-    console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr)
-    const userIdNum = userIdStr ? Number(userIdStr) : null;
-    console.log("🚀 ~ useEffect ~ userIdNum:", userIdNum)
-    console.log("🚀 ~ useEffect ~ typeof(userIdNum):", typeof userIdNum)
-
-    // Set the state with the numeric value (or null)
-    setUserId(userIdNum);
   }, []);
 
 

@@ -1,6 +1,9 @@
-import { Pool } from 'pg';
+// src/app/Dashboard/backend.ts
+'use server';
 
-interface DailyLog {
+import { createClient } from '@/app/utils/supabase/db';
+
+export interface DailyLog {
   date: string;
   completed: number;
   missed: number;
@@ -8,7 +11,7 @@ interface DailyLog {
   deleted: number;
 }
 
-interface WeeklyLog {
+export interface WeeklyLog {
   daily: DailyLog[];
   weekly: {
     completed: number;
@@ -18,106 +21,126 @@ interface WeeklyLog {
   };
 }
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
-});
-
-async function testConnection() {
-  const client = await pool.connect();
-  try {
-    console.log("Database connection established successfully.");
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Failed to connect to the database:', errorMessage);
-  } finally {
-    client.release();
-  }
+// Define interface for Supabase query results
+interface QueryRow {
+  timestamp: string;
+  status_array: string | null;
+  deleted: boolean;
 }
-testConnection();
 
-export async function getWeeklyLog(userId: number, activeDashboardBtn: string): Promise<WeeklyLog> {
-  // Build the table name from the activeDashboardBtn, e.g. "personal_task"
-  const dashboardTable = `${activeDashboardBtn}_task`;
-  console.log("Dashboard table:", dashboardTable);
+// Helper to format a Date to 'YYYY-MM-DD'
+const formatDate = (d: Date) => d.toISOString().slice(0, 10);
+console.log("🚀 ~ formatDate:", formatDate)
 
-  // Validate that the table name is allowed to avoid SQL injection.
-  const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
-  if (!allowedDashboard.includes(dashboardTable)) {
-    console.error(`Invalid table name: ${dashboardTable}`);
-    throw new Error(`Invalid table name: ${dashboardTable}`);
+/**
+ * Fetches daily and weekly counts for a given user/dashboard,
+ * using a single Supabase query and then sorting/aggregating in TS.
+ */
+export async function getWeeklyLog(
+  activeDashboardBtn: string
+): Promise<WeeklyLog | null> {
+
+  console.log("🚀 ~ activeDashboardBtn:", activeDashboardBtn)
+  const table = activeDashboardBtn == "" ? "personal_task" : `${activeDashboardBtn}_task`;
+  const allowed = [
+    'personal_task',
+    'work_task',
+    'time_bound_task',
+    'repeated_task',
+  ];
+  if (!allowed.includes(table)) {
+    throw new Error(`Invalid table name: ${table}`);
+    return null
   }
 
-  const client = await pool.connect();
+  // Determine week range: Monday through today
+  const now = new Date();
+  const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0…Sun=6
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dayOfWeek);
+
+  const supabase = await createClient();
   try {
-    // Get current date
-    const now = new Date();
-    // In JavaScript, getDay() returns 0 for Sunday, 1 for Monday, …, 6 for Saturday.
-    // To get Monday (as the beginning of the week), we shift Sunday to index 6.
-    const dayOfWeek = (now.getDay() + 6) % 7; // Monday => 0, Tuesday => 1, …, Sunday => 6
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - dayOfWeek);
+    // Query with explicit type handling
+    const { data: rows, error } = await supabase
+      .from(table)
+      .select("created_at, task_data->>'status' AS status_array, deleted")
+      .gte('created_at', monday.toISOString())
+      .lte('created_at', now.toISOString())
+      .order('created_at', { ascending: true });
 
-    // Helper to format a Date to 'YYYY-MM-DD'
-    const formatDate = (date: Date) => date.toISOString().slice(0, 10);
-    const todayStr = formatDate(now);
-    const mondayStr = formatDate(monday);
-    console.log("Calculated week: Monday =", mondayStr, "to Today =", todayStr);
-
-    // Prepare arrays for daily data and an object for weekly totals.
-    const dailyData: DailyLog[] = [];
-    const weeklyTotals = { completed: 0, missed: 0, active: 0, deleted: 0 };
-
-    // Loop from Monday to today.
-    for (let d = new Date(monday); d <= now; d.setDate(d.getDate() + 1)) {
-      const dateStr = formatDate(d);
-
-      // Query to count statuses for a specific day.
-      const query = `
-        SELECT
-          SUM(CASE WHEN status_elem->>'completed' IS NOT NULL THEN 1 ELSE 0 END) AS completed,
-          SUM(CASE WHEN status_elem->>'missed' IS NOT NULL THEN 1 ELSE 0 END) AS missed,
-          SUM(CASE WHEN status_elem->>'completed' IS NULL AND status_elem->>'missed' IS NULL THEN 1 ELSE 0 END) AS active,
-          SUM(CASE WHEN deleted = true THEN 1 ELSE 0 END) AS deleted
-        FROM ${dashboardTable},
-        LATERAL jsonb_array_elements(task_data->'status') AS status_elem
-        WHERE user_id = $1
-          AND timestamp::date = $2;
-      `;
-      const { rows } = await client.query(query, [userId, dateStr]);
-      const dayCounts = rows[0];
-
-      // Ensure that we convert counts to numbers (or default to 0 if null)
-      const dayResult: DailyLog = {
-        date: dateStr,
-        completed: Number(dayCounts.completed) || 0,
-        missed: Number(dayCounts.missed) || 0,
-        active: Number(dayCounts.active) || 0,
-        deleted: Number(dayCounts.deleted) || 0,
-      };
-
-      // Update weekly totals
-      weeklyTotals.completed += dayResult.completed;
-      weeklyTotals.missed += dayResult.missed;
-      weeklyTotals.active += dayResult.active;
-      weeklyTotals.deleted += dayResult.deleted;
-
-      // Add the day's data to our results array
-      dailyData.push(dayResult);
+    if (error) {
+      console.error('getWeeklyLog supabase error:', error);
+      throw error;
     }
 
-    // Return a JSON object with both daily breakdown and weekly totals.
-    return {
-      daily: dailyData,
-      weekly: weeklyTotals,
-    };
-  } catch (error: unknown) {
-    console.error("Error in getWeeklyLog:", error);
-    throw error;
-  } finally {
-    client.release();
+    // Initialize daily buckets for each date
+    const dailyMap: Record<string, DailyLog> = {};
+    for (let d = new Date(monday); d <= now; d.setDate(d.getDate() + 1)) {
+      const dateKey = formatDate(d);
+      dailyMap[dateKey] = {
+        date: dateKey,
+        completed: 0,
+        missed: 0,
+        active: 0,
+        deleted: 0,
+      };
+    }
+
+    // Cast rows to QueryRow interface for type safety
+    const typedRows = (rows ?? []) as unknown as QueryRow[];
+
+    // Tally each row into its corresponding day
+    for (const row of typedRows) {
+      const ts = new Date(row.timestamp);
+      const dateKey = formatDate(ts);
+      const bucket = dailyMap[dateKey];
+      if (!bucket) continue; // outside range
+
+      // Count deleted flag
+      if (row.deleted) {
+        bucket.deleted += 1;
+      }
+
+      // Parse status array JSON if exists
+      let statuses: Array<{ completed?: boolean; missed?: boolean }> = [];
+      if (row.status_array) {
+        try {
+          statuses = JSON.parse(row.status_array);
+        } catch {
+          // malformed JSON - treat as empty statuses
+        }
+      }
+
+      // For each status entry, increment counters
+      for (const stat of statuses) {
+        if (stat.completed) {
+          bucket.completed += 1;
+        } else if (stat.missed) {
+          bucket.missed += 1;
+        } else {
+          bucket.active += 1;
+        }
+      }
+    }
+
+    // Build final sorted daily array and weekly totals
+    const daily: DailyLog[] = [];
+    const weeklyTotals = { completed: 0, missed: 0, active: 0, deleted: 0 };
+
+    Object.values(dailyMap)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .forEach((day) => {
+        daily.push(day);
+        weeklyTotals.completed += day.completed;
+        weeklyTotals.missed += day.missed;
+        weeklyTotals.active += day.active;
+        weeklyTotals.deleted += day.deleted;
+      });
+
+    return { daily, weekly: weeklyTotals };
+  } catch (error) {
+    console.log("🚀 ~ error:", error)
+    return null
   }
 }

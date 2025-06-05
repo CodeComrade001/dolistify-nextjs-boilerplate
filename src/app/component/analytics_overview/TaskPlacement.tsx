@@ -2,7 +2,9 @@
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
-export default async function taskPosition(id: number, dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
+export default async function taskPosition( dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
+   console.log("🚀 ~ taskPosition ~ dashboardRoute:", dashboardRoute)
+   console.log("🚀 ~ taskPosition ~ dashboardBtn:", dashboardBtn)
    console.log("🚀 ~ taskPosition ~ taskPosition:", taskPosition)
    let dashboardBtnFormat: string;
    let validatedDashboardRoute: string | undefined;
@@ -31,7 +33,7 @@ export default async function taskPosition(id: number, dashboardBtn: string, das
    }
 
    try {
-      const result = await taskPositionRequirement(id, dashboardBtnFormat, validatedDashboardRoute);
+      const result = await taskPositionRequirement( dashboardBtnFormat, validatedDashboardRoute);
       console.log("🚀 ~ taskPosition ~ result:", result)
 
       if (!result) {
@@ -51,9 +53,9 @@ export default async function taskPosition(id: number, dashboardBtn: string, das
          const id = element.id;
 
          // Get time components as strings
-         const hrsString: string = new Date(element.timeadded).toLocaleString("en-GB", { hour: "2-digit" });
-         const minString: string = new Date(element.timeadded).toLocaleString("en-US", { minute: "2-digit" });
-         const secString: string = new Date(element.timeadded).toLocaleString("en-US", { second: "2-digit" });
+         const hrsString: string = new Date(element.created_at).toLocaleString("en-GB", { hour: "2-digit" });
+         const minString: string = new Date(element.created_at).toLocaleString("en-US", { minute: "2-digit" });
+         const secString: string = new Date(element.created_at).toLocaleString("en-US", { second: "2-digit" });
 
          // Convert to integers
          const hrs: number = parseInt(hrsString, 10);

@@ -1,28 +1,57 @@
-import { getWeeklyLog } from "@/app/component/backend_component/TaskWeeklyLog"
+// File: src/app/api/weeklyLog/route.ts
+
+import { DailyLog, getWeeklyLog, WeeklyLog } from "@/app/component/backend_component/TaskWeeklyLog";
 import { NextResponse } from "next/server";
 
-interface DailyLog {
-  date: string;
-  completed: number;
-  missed: number;
-  active: number;
-  deleted: number;
-}
+/**
+ * We take DailyLog’s `date` but redefine
+ * the four count properties as strings.
+ */
+type DailyPct = Omit<
+  DailyLog,
+  "completed" | "missed" | "active" | "deleted"
+> & {
+  completed: string;
+  missed: string;
+  active: string;
+  deleted: string;
+};
 
 export async function POST(request: Request) {
   try {
-    const { userId, activeDashboardBtn } = await request.json();
-    console.log("User ID:", userId);
-    console.log("Active Dashboard Btn:", activeDashboardBtn);
+    const { activeDashboardBtn } = await request.json();
 
-    const dataLog = await getWeeklyLog(userId, activeDashboardBtn);
+    // 1) Fetch the WeeklyLog (or null if not found)
+    let dataLog: WeeklyLog | null;
+    if (activeDashboardBtn == undefined) {
+      const defaultName = "personal";
+      dataLog = await getWeeklyLog(defaultName);
+    } else {
+      dataLog = await getWeeklyLog(activeDashboardBtn);
+    }
 
-    // Helper function to convert raw counts into percentage strings.
-    const convertCountsToPercentage = (counts: { completed: number; missed: number; active: number; deleted: number }) => {
-      const total = counts.completed + counts.missed + counts.active + counts.deleted;
+    // 2) Helper: convert raw counts into percentage‐strings
+    const toPct = (counts: {
+      completed: number;
+      missed: number;
+      active: number;
+      deleted: number;
+    }) => {
+      const total =
+        counts.completed +
+        counts.missed +
+        counts.active +
+        counts.deleted;
+
       if (total === 0) {
-        return { completed: "0%", missed: "0%", active: "0%", deleted: "0%" };
+        return {
+          completed: "0%",
+          missed: "0%",
+          active: "0%",
+          deleted: "0%",
+        };
       }
+
       return {
         completed: ((counts.completed / total) * 100).toFixed(0) + "%",
         missed: ((counts.missed / total) * 100).toFixed(0) + "%",
@@ -31,63 +60,101 @@ export async function POST(request: Request) {
       };
     };
 
-    // Convert weekly totals to percentage values.
-    const weeklyPercentage = convertCountsToPercentage(dataLog.weekly);
-    const weeklyNumberFormat = dataLog.weekly;
-    const dailyNumberFormat = dataLog.daily;
+    // 3) If dataLog is null, build a “zero‐filled” response
+    if (dataLog === null) {
+      // Weekly counts all zero
+      const zeroWeeklyCounts = {
+        completed: 0,
+        missed: 0,
+        active: 0,
+        deleted: 0,
+      };
+      // Weekly percentages all “0%”
+      const zeroWeeklyPct = toPct(zeroWeeklyCounts);
 
-    // Convert each day’s counts into percentages.
-    const dailyPercentage = dataLog.daily.map((day: DailyLog) => ({
-      date: day.date,
-      ...convertCountsToPercentage(day)
-    }));
-    console.log("🚀 ~ dailyPercentage ~ dailyPercentage:", dailyPercentage)
+      // Build a 7‐element daily array of zeros
+      const zeroDailyNum: Array<{
+        date: string;
+        completed: number;
+        missed: number;
+        active: number;
+        deleted: number;
+      }> = [];
+      const zeroDailyPct: DailyPct[] = [];
 
-
-
-    if (dailyPercentage.length < 7) {
-      const missingCount = 7 - dailyPercentage.length;
-      for (let i = 0; i < missingCount; i++) {
-        const remainingDailyPercentage = []
-        const remainingDailyNumber = []
-        remainingDailyPercentage.push({
-          date: "", // Default placeholder for date if not provided.
-          completed: "0%",
-          missed: "0%",
-          active: "0%",
-          deleted: "0%"
-        });
-        console.log("🚀 ~ POST ~ remainingDailyPercentage:", remainingDailyPercentage)
-        remainingDailyNumber.push({
-          date: '',
+      for (let i = 0; i < 7; i++) {
+        zeroDailyNum.push({
+          date: "",
           completed: 0,
           missed: 0,
           active: 0,
-          deleted: 0
-        })
-        console.log("🚀 ~ POST ~ remainingDailyNumber:", remainingDailyNumber)
-        dailyPercentage.push(...remainingDailyPercentage)
-        dailyNumberFormat.push(...remainingDailyNumber)
+          deleted: 0,
+        });
+        zeroDailyPct.push({
+          date: "",
+          completed: "0%",
+          missed: "0%",
+          active: "0%",
+          deleted: "0%",
+        });
       }
-      console.log("🚀 ~ POST ~ dailyNumberFormat:", dailyNumberFormat)
-      console.log("🚀 ~ POST ~ dailyPercentage:", dailyPercentage)
-      //   dailyPercentage.map((item) => {
-      //     item, ...remainingDailyPercentage
-      // })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          weekly: zeroWeeklyPct,
+          weeklyNumFormat: zeroWeeklyCounts,
+          daily: zeroDailyPct,
+          dailyNumFormat: zeroDailyNum,
+        },
+      });
     }
 
-    // Return the data that can be used in your Bar and PieChartLabel components.
+    // 4) At this point, dataLog is definitely not null. Extract weekly & daily:
+    // Weekly data
+    const weeklyPct = toPct(dataLog.weekly);
+    const weeklyNum = dataLog.weekly;
+
+    // Daily data
+    const dailyNum = [...dataLog.daily]; // shallow copy of all seven (or fewer) entries
+    const dailyPct: DailyPct[] = dataLog.daily.map((day) => ({
+      date: day.date,
+      ...toPct(day),
+    }));
+
+    // 5) If there are fewer than 7 days in `dataLog.daily`, pad out to length=7
+    for (let i = dailyPct.length; i < 7; i++) {
+      dailyPct.push({
+        date: "",
+        completed: "0%",
+        missed: "0%",
+        active: "0%",
+        deleted: "0%",
+      });
+      dailyNum.push({
+        date: "",
+        completed: 0,
+        missed: 0,
+        active: 0,
+        deleted: 0,
+      });
+    }
+
+    // 6) Return the normal, non‐null case
     return NextResponse.json({
       success: true,
       data: {
-        weekly: weeklyPercentage,
-        daily: dailyPercentage,
-        dailyNumFormat: dailyNumberFormat,
-        weeklyNumFormat: weeklyNumberFormat,
-      }
+        weekly: weeklyPct,
+        weeklyNumFormat: weeklyNum,
+        daily: dailyPct,
+        dailyNumFormat: dailyNum,
+      },
     });
-  } catch (error: unknown) {
-    console.error("Error processing weekly log request:", error);
-    return NextResponse.json({ success: false, error: error });
+  } catch (err: unknown) {
+    console.error("weekly-log POST error:", err);
+    return NextResponse.json({
+      success: false,
+      error: String(err),
+    });
   }
 }

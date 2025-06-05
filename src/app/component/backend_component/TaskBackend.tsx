@@ -1,716 +1,550 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/app/Dashboard/backend.ts
 'use server';
-import { Pool } from 'pg';
 
-interface Notification {
-   id: number;
-   notification_data: string;
-}
+import { createClient } from "@/app/utils/supabase/db";
+type parsedTaskType = {
+   title: string;
+   subtasks: Array<{ id: number; description: string }>;
+   status: Array<{ id: number; missed: boolean | null; completed: boolean | null }>;
+};
 
-interface DayNotification {
-   date: string;
-   Notification: Notification[];
-}
 
-const pool = new Pool({
-   user: process.env.DB_USER,
-   host: process.env.DB_HOST,
-   database: process.env.DB_DATABASE,
-   password: process.env.DB_PASSWORD,
-   port: Number(process.env.DB_PORT),
-});
-
-// Test the database connection
-async function testConnection() {
-   const client = await pool.connect();
-   try {
-      console.log("Database connection established successfully.");
-   } catch (error: unknown) {
-      const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
-      console.error('Failed to connect to the database:', errorMessage);
-   } finally {
-      client.release();
-   }
-}
-
-// Call the connection test function
-testConnection();
+// Allowed names for safety
+const ALLOWED_TABLES = ["personal_task", "repeated_task", "repeated_task_status", "time_bound_task", "work_task"];
+const ALLOWED_ROUTES = ["personal", "work", "high_priority", "archived", "main", "repeated", "time_deadline", "date_deadline"];
 
 export default async function insertTask(
-   userId: number,
    dashboardBtn: string,
    dashboardRoute: string,
-   taskDetails: { title: string; subtasks: Array<{ id: number; description: string }>; status: Array<{ id: number; completed: boolean | null; missed: boolean | null }> },
+   taskDetails: {
+      title: string;
+      subtasks: Array<{ id: number; description: string }>;
+      status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
+   },
    userDeadline?: string | number
 ): Promise<boolean> {
-   // Format dashboard button
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-   const validatedDashboardRoute = dashboardRoute;
 
-   console.log("🚀 ~ dashboardBtnFormat:", dashboardBtnFormat);
-   console.log("🚀 ~ dashboardRoute:", validatedDashboardRoute);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.error(`Invalid table name: ${dashboardBtnFormat}`);
-      return false;
-   }
-
-   const allowedRoutes = ["personal", "work", "high_priority", "archived", "main", "repeated", "time_deadline", "date_deadline"];
-   if (!allowedRoutes.includes(validatedDashboardRoute)) {
-      console.error(`Invalid column name: ${validatedDashboardRoute}`);
-      return false;
-   }
-
-   const client = await pool.connect();
+   const supabase = await createClient();
 
    try {
-      // Changed comment: now verifying user exists by id instead of email
-      const userQuery = 'SELECT id FROM users WHERE id = $1';
-      const userResult = await client.query(userQuery, [userId]);
+      const table = `${dashboardBtn}_task`;
 
-      if (userResult.rowCount === 0) {
-         console.error('User not found with id:', userId);
+      if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
+         console.error("insertTask: Invalid table or column");
          return false;
       }
 
-      // Prepare and execute the query
-      let taskQuery: string;
-      let taskValues: (string | number | boolean | object)[];
+      // Build payload
+      const payload: Record<string, any> = {
+         task_data: taskDetails,
+      };
+      console.log("🚀 ~ payload:", payload)
 
       if (userDeadline) {
-
-         let formattedDeadline: string;
-         let columnDeadline: string;
-
+         let col: "time_deadline" | "date_deadline" = "date_deadline";
+         let val: string;
          if (typeof userDeadline === "number") {
-            // Convert hours to PostgreSQL `time` format
-            formattedDeadline = `${userDeadline}:00`;
-            columnDeadline = "time_deadline";
+            col = "time_deadline";
+            val = `${userDeadline}:00`;
          } else if (/^\d{2}:\d{2}$/.test(userDeadline)) {
-            // If string matches `HH:MM`, treat as `TIME`
-            formattedDeadline = userDeadline;
-            columnDeadline = "time_deadline";
+            col = "time_deadline";
+            val = userDeadline;
          } else {
-            // Assume valid `DATE` format for other strings
-            formattedDeadline = userDeadline;
-            columnDeadline = "date_deadline";
+            col = "date_deadline";
+            val = userDeadline.toString();
          }
-
-         console.log("🚀 ~ formattedDeadline:", formattedDeadline);
-         // Corrected query: removed commas in WHERE clause (if any) by proper formatting
-         taskQuery = `INSERT INTO ${dashboardBtnFormat} (user_id, task_data, ${columnDeadline}) VALUES ($1, $2::jsonb, $3) RETURNING *;`;
-         taskValues = [userId, JSON.stringify(taskDetails), formattedDeadline];
+         payload[col] = val;
       } else {
-         // Insert without deadline; query remains the same
-         taskQuery = `
-         INSERT INTO ${dashboardBtnFormat} (user_id, task_data, ${validatedDashboardRoute}) 
-         VALUES ($1, $2::jsonb, $3) RETURNING *;
-       `;
-         taskValues = [userId, JSON.stringify(taskDetails), true];
+         payload[dashboardRoute] = true;
       }
 
-      const taskResult = await client.query(taskQuery, taskValues);
-
-      console.log('Inserted task:', taskResult.rows[0]);
+      const { error } = await supabase.from(table).insert(payload);
+      console.log("🚀 ~ error:", error)
+      if (error) {
+         console.error("insertTask supabase error:", error);
+         return false;
+      }
       return true;
-   } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error('Error inserting task:', errorMessage);
+   } catch (err) {
+      console.error("insertTask caught error:", err);
       return false;
-   } finally {
-      client.release();
    }
 }
 
 export async function updateTaskInformation(
-   userId: number,
    dashboardBtn: string,
-   taskDetails: { title: string; subtasks: Array<{ id: number; description: string }>; status: Array<{ id: number; completed: boolean | null; missed: boolean | null }> },
-   updatingIndex: number,
-) {
-   console.log("🚀 ~ userId:", userId)
-   console.log("🚀 ~ updatingIndex:", updatingIndex)
-   console.log("🚀 ~ taskDetails:", taskDetails)
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-   console.log("🚀 ~ dashboardBtnFormat:", dashboardBtnFormat);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.error(`Invalid table name: ${dashboardBtnFormat}`);
-      return false;
-   }
-   const client = await pool.connect();
+   taskDetails: {
+      title: string;
+      subtasks: Array<{ id: number; description: string }>;
+      status: Array<{ id: number; completed: boolean | null; missed: boolean | null }>;
+   },
+   updatingIndex: string
+): Promise<boolean> {
+   const supabase = await createClient();
    try {
-      // Changed: replaced comma with AND in WHERE clause
-      const existingTaskQuery = `SELECT task_data->>'subtasks' AS subtasks FROM ${dashboardBtnFormat} WHERE id = $1 AND user_id = $2 `;
-      const existingTaskResult = await client.query(existingTaskQuery, [updatingIndex, userId]);
-      console.log("🚀 ~ initial task details:", existingTaskResult.rows);
-
-      if (existingTaskResult.rows.length > 0) {
-         // Task exists, prepare the update query
-         const updatedTaskFormat = JSON.stringify(taskDetails);
-
-         // Changed: replaced comma with AND in WHERE clause
-         const updateTaskQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1 WHERE id = $2 AND user_id = $3 `;
-         const updateTaskValues = [updatedTaskFormat, updatingIndex, userId];
-
-
-         const updatedTaskResult = await client.query(updateTaskQuery, updateTaskValues);
-         // check if result changes
-         // Check if update affected any rows
-         if (updatedTaskResult.rowCount != null && updatedTaskResult.rowCount > 0) {
-            console.log("🚀 ~ updatedTaskResult.rowCount:", updatedTaskResult.rowCount)
-            return true;
-         } else {
-            console.warn("Update did not affect any rows.");
-            return false;
-         }
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.includes(table)) {
+         console.error("updateTaskInformation: Invalid table");
+         return false;
       }
-      console.log(`No task found with id ${updatingIndex} in ${dashboardBtnFormat}.`);
+
+      const { data, error } = await supabase
+         .from(table)
+         .update({ task_data: taskDetails })
+         .match({ id: updatingIndex });
+      console.log("🚀 ~ data:", data)
+
+      if (error) {
+         console.error("updateTaskInformation supabase error:", error);
+         return false;
+      }
+      return true;
+   } catch (err) {
+      console.error("updateTaskInformation caught error:", err);
       return false;
-   } catch (error: unknown) {
-      console.error("Error updating task:", error instanceof Error ? error.message : "Unknown error");
-      return false;
-   } finally {
-      client.release();
    }
 }
 
 export async function showSavedTaskSummaryView(
-   userId: number,
    dashboardBtn: string,
    dashboardRoute: string
 ) {
-   let dashboardBtnFormat: string;
-   let validatedDashboardRoute: string;
-   if (dashboardBtn === "completed" || dashboardBtn === "missed") {
-      dashboardBtnFormat = `${dashboardBtn}_task`;
-      validatedDashboardRoute = `${dashboardRoute}_task`;
-   } else if (dashboardBtn === "repeated" && (dashboardRoute === "personal" || dashboardRoute === "work" || dashboardRoute === "time_bound")) {
-      dashboardBtnFormat = `${dashboardBtn}_task`;
-      validatedDashboardRoute = dashboardRoute;
-   } else {
-      dashboardBtnFormat = dashboardBtn === "" ? "personal_task" : `${dashboardBtn}_task`;
-      validatedDashboardRoute = dashboardRoute === "" ? "high_priority" : dashboardRoute;
-   }
-
-   console.log("🚀 ~ showSavedTaskSummaryView ~ dashboardBtnFormat:", dashboardBtnFormat);
-   console.log("🚀 ~ showSavedTaskSummaryView ~ tableRouteLabel:", validatedDashboardRoute);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
-      return false;
-   }
-
-   const allowedRoutes = ["completed", "high_priority", "personal_task", "work_task", "time_bound_task", "archived", "missed", "main", "time_deadline", "date_deadline", "personal", "work", "time_bound"];
-   if (!allowedRoutes.includes(validatedDashboardRoute)) {
-      console.log(`Invalid column name: ${validatedDashboardRoute}`);
-      return false;
-   }
-
-   const client = await pool.connect();
+   const supabase = await createClient();
    try {
-      let taskQuery: string;
-      if (validatedDashboardRoute === "time_deadline" || validatedDashboardRoute === "date_deadline") {
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND ${validatedDashboardRoute} IS NOT NULL`;
-      } else if (dashboardBtnFormat === "completed_task") {
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND completed = true`;
-      } else if (dashboardBtnFormat === "missed_task") {
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND missed = true`;
-      } else if (dashboardBtnFormat === "repeated_task" && validatedDashboardRoute === "time_bound") {
-         // Changed comma to AND
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND ${validatedDashboardRoute} = true AND (user_deadline IS NOT NULL OR date_deadline IS NOT NULL)`;
-      } else if (dashboardBtnFormat === "repeated_task" && (validatedDashboardRoute === "missed" || validatedDashboardRoute === "completed")) {
-         taskQuery = `SELECT 
-         rt.id, 
-         rt.task_data->>'title' AS title, 
-         rt.timestamp
-         FROM ${dashboardBtnFormat} rt
-         JOIN repeated_task_status rts ON rt.id = rts.task_id
-         WHERE rts.${validatedDashboardRoute} = true AND rt.user_id = $1; 
-       `;
-      } else {
-         // Corrected template literal for validatedDashboardRoute
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp FROM ${dashboardBtnFormat} WHERE user_id = $1 AND ${validatedDashboardRoute} = true`;
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
+         console.error("showSavedTaskSummaryView: Invalid table or column");
+         return false;
       }
-      const taskResult = await client.query(taskQuery, [userId]);
 
-      const row = taskResult.rows;
-      console.log("🚀 ~ showSavedTaskSummaryView ~ row:", row)
-      return row;
-   } catch (error: unknown) {
-      const errorMessage = (error instanceof Error) ? error.message : "Unknown Message";
-      console.log("Error fetching task for show saved task details:", errorMessage);
+      // Base selector (always select id, title, created_at)
+      let query = supabase
+         .from(table)
+         .select("id, task_data->>title , created_at");
+
+      // Special cases
+      if (["time_deadline", "date_deadline"].includes(dashboardRoute)) {
+         query = query
+            .not(dashboardRoute, "is", null)
+            .order("id", { ascending: true });
+      } else if (dashboardRoute === "completed") {
+         query = supabase
+            .from(table)
+            .select("id, task_data->>title , created_at")
+            .eq("completed", true)
+            .order("id", { ascending: true });
+      } else if (
+         dashboardBtn === "repeated" &&
+         ["missed", "completed"].includes(dashboardRoute)
+      ) {
+         // For repeated tasks with missed/completed flags, join via repeated_task_status
+         const { data, error } = await supabase
+            .from("repeated_task_status")
+            .select("task:rt(id, task_data->>title , created_at)")
+            .eq(dashboardRoute, true)
+            .order("task_id", { ascending: true });
+
+         if (error) throw error;
+         // Mapping out the inner `task` object (already sorted by task_id)
+         return data.map;
+      } else {
+         // Default case: filter by the given boolean column (e.g., "main", "work", etc.)
+         query = query
+            .eq(dashboardRoute, true)
+            .order("id", { ascending: true });
+      }
+
+      // Execute and return
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+   } catch (err) {
+      console.error("showSavedTaskSummaryView caught error:", err);
       return false;
-   } finally {
-      client.release();
    }
 }
 
 export async function showSavedTaskDetailView(
-   userId: number,
-   id?: number,
-   dashboardBtn?: string,
-   dashboardRoute?: string
-) {
-
-   const dashboardBtnFormat = dashboardBtn === "" ? "personal_task" : `${dashboardBtn}_task`;
-   const validatedDashboardRoute = dashboardRoute === "" ? "high_priority" : dashboardRoute;
-
-   console.log("🚀 ~ showSavedTaskDetailView ~ id:", id);
-   if (!id || dashboardBtnFormat === "" || validatedDashboardRoute === "") {
-      console.log("Invalid input parameters");
-      return false; // Added early return for invalid parameters
-   }
-
-   if (typeof id !== "number" || typeof dashboardBtnFormat !== "string" || typeof validatedDashboardRoute !== "string") {
-      console.log("Invalid type of data");
-      return false;
-   }
-
-   console.log("🚀 ~ showSavedTaskDetailView ~ id:", id);
-   console.log("🚀 ~ showSavedTaskSummaryView ~ dashboardBtnFormat:", dashboardBtnFormat);
-   console.log("🚀 ~ showSavedTaskSummaryView ~ tableRouteLabel:", validatedDashboardRoute);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
-      return false;
-   }
-
-   const allowedRoutes = ["completed", "high_priority", "personal_task", "work_task", "time_bound_task", "archived", "missed", "main", "time_deadline", "date_deadline", "personal", "work", "time_bound"];
-   if (!allowedRoutes.includes(validatedDashboardRoute)) {
-      console.log(`Invalid column name: ${validatedDashboardRoute}`);
-      return false;
-   }
-
-   const client = await pool.connect();
-   try {
-      let taskQuery: string;
-      if (validatedDashboardRoute === "time_deadline" || validatedDashboardRoute === "date_deadline") {
-         // Changed comma to AND in WHERE clause
-         taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks, task_data->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 AND user_id = $2 AND ${validatedDashboardRoute} IS NOT NULL`;
-      } else if (dashboardBtnFormat === "repeated_task" && (validatedDashboardRoute === "missed" || validatedDashboardRoute === "completed")) {
-         taskQuery = `SELECT 
-         rt.id, 
-         rt.task_data->>'title' AS title, 
-         rt.task_data->>'subtasks' AS subtasks, 
-         rt.task_data->>'status' AS status 
-         FROM ${dashboardBtnFormat} rt
-         JOIN repeated_task_status rts ON rt.id = rts.task_id
-         WHERE rts.${validatedDashboardRoute} = true AND rt.id = $1 AND rt.user_id = $2
-         `;
-      } else {
-         // Changed comma to AND in WHERE clause
-         taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks, task_data->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 AND user_id = $2 AND ${validatedDashboardRoute} = true`;
-      }
-
-      const taskResult = await client.query(taskQuery, [id, userId]);
-      const row = taskResult.rows[0];
-      console.log("🚀 ~ showSavedTaskDetailView ~ row:", row);
-      return row;
-   } catch (error: unknown) {
-      const errorMessage = (error instanceof Error) ? error.message : "Unknown Message";
-      console.log("Error fetching task:", errorMessage);
-      throw error;
-   } finally {
-      client.release();
-   }
-}
-
-export async function taskPositionRequirement(
-   userId: number,
+   taskId: string,         // assume "id" is a UUID
    dashboardBtn: string,
    dashboardRoute: string
-) {
-   console.log("🚀 ~ userId:", userId)
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtn)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtn}`);
-      return false;
-   }
-
-   const allowedRoutes = ["completed", "high_priority", "personal_task", "work_task", "time_bound_task", "archived", "missed", "main", "time_deadline", "date_deadline", "personal", "work", "time_bound"];
-   if (!allowedRoutes.includes(dashboardRoute)) {
-      console.log(`Invalid column name: ${dashboardRoute}`);
-      return false;
-   }
-
-   const client = await pool.connect();
+): Promise<parsedTaskType | null> {
+   const supabase = await createClient();
    try {
-      let taskQuery: string;
-      if (dashboardRoute === "time_deadline" || dashboardRoute === "date_deadline") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = $1 AND ${dashboardRoute} IS NOT NULL  ORDER BY timestamp ASC`;
-      } else if (dashboardBtn === "completed_task") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardRoute} WHERE user_id = $1 AND completed = true  ORDER BY timestamp ASC`;
-      } else if (dashboardBtn === "repeated_task" && dashboardRoute === "time_bound") {
-         // Changed comma to AND in WHERE clause
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = $1 AND ${dashboardRoute} = true AND (user_deadline IS NOT NULL OR date_deadline IS NOT NULL)`;
-      } else if (dashboardBtn === "missed_task") {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardRoute} WHERE user_id = $1 AND missed = true  ORDER BY timestamp,id ASC`;
-      } else if (dashboardBtn === "repeated_task" && (dashboardRoute === "missed" || dashboardRoute === "completed")) {
-         taskQuery = `SELECT 
-         rt.id,  
-         rt.timestamp
-         FROM ${dashboardBtn} rt
-         JOIN repeated_task_status rts ON rt.id = rts.task_id
-         WHERE rts.${dashboardRoute} = true`;
-      } else {
-         taskQuery = `SELECT id, timestamp as timeAdded FROM ${dashboardBtn} WHERE user_id = $1 AND ${dashboardRoute} = true  ORDER BY timestamp ASC`;
+      if (!taskId || !dashboardBtn || !dashboardRoute) return null;
+
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
+         console.error("showSavedTaskDetailView: Invalid inputs");
+         return null;
       }
-      console.log("🚀 ~ taskQuery:", taskQuery)
 
-      const taskResult = await client.query(taskQuery, [userId]);
-      const row = taskResult.rows;
-      return row;
+      // Repeated + status join (if you ever need it)
+      if (dashboardBtn === "repeated" && ["missed", "completed"].includes(dashboardRoute)) {
+         const { data, error } = await supabase
+            .from("repeated_task_status")
+            .select(`task:rt(task_data->>title, task_data->>subtasks, task_data->>status)`)
+            .eq(dashboardRoute, true)
+            .eq("rt.id", taskId)
+            .single();
+         if (error) throw error;
+         const { title, subtasks, status } = data.task[0];
+         const dataFormat = {
+            title,
+            subtasks: JSON.parse(subtasks),
+            status: JSON.parse(status),
+         };
+         return dataFormat;
+      }
 
-   } catch (error: unknown) {
-      const errorMessage = (error instanceof Error) ? error.message : "Unknown Message";
-      console.log("Error fetching task:", errorMessage);
-      return false;
-   } finally {
-      client.release();
+      // Default case: filter on “id” and on the boolean column named by dashboardRoute
+      const { data, error } = await supabase
+         .from(table)
+         .select("task_data->>title, task_data->>subtasks , task_data->>status")
+         .eq("id", taskId)             // ◀️ filter by the actual primary key column
+         .eq(dashboardRoute, true)     // ◀️ e.g. “high_priority = true”
+         .single();
+
+      console.log("🚀 ~ data:", data);
+
+      if (error) return null;
+      const dataFormat = {
+         ...data,
+         subtasks: JSON.parse(data.subtasks),
+         status: JSON.parse(data.status),
+      };
+      return dataFormat;
+   } catch (err) {
+      console.error("showSavedTaskDetailView caught error:", err);
+      return null;
    }
 }
 
+
+export async function getUserSearchResult(
+   query: string,
+   dashboardBtn: string
+) {
+   const supabase = await createClient();
+   try {
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.includes(table)) {
+         console.error("getUserSearchResult: Invalid table");
+         return false;
+      }
+
+      const { data, error } = await supabase
+         .from(table)
+         .select("id, task_data->>title AS title")
+         .or(`task_data->>title.ilike.%${query}%,task_data->>subtasks.ilike.%${query}%`)
+
+      if (error) throw error;
+      return data;
+   } catch (err) {
+      console.error("getUserSearchResult caught error:", err);
+      return false;
+   }
+}
+
+export async function getTaskDetailsForPreview(
+   taskId: string,
+   dashboardBtn: string
+) {
+   const supabase = await createClient();
+   try {
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.includes(table)) {
+         console.error("getTaskDetailsForPreview: Invalid table");
+         return false;
+      }
+
+      const { data, error } = await supabase
+         .from(table)
+         .select("task_data->>title , task_data->>subtasks , task_data->>status ")
+         .match({ id: taskId })
+         .single();
+
+      if (error) throw error;
+      const { title, subtasks, status } = data
+      const dataFormat = {
+         title,
+         subtasks: JSON.parse(subtasks),
+         status: JSON.parse(status),
+      };
+      return dataFormat;
+   } catch (err) {
+      console.error("getTaskDetailsForPreview caught error:", err);
+      return false;
+   }
+}
+
+// --------------- taskPositionRequirement ---------------
+export async function taskPositionRequirement(
+   dashboardBtn: string,
+   dashboardRoute: string
+): Promise<any[] | false> {
+   console.log("🚀 ~ taskPositionRequirement:", taskPositionRequirement)
+   console.log("🚀 ~ taskPositionRequirement function has started ===> :",)
+   console.log("🚀 ~ dashboardBtn:", dashboardBtn)
+   console.log("🚀 ~ dashboardRoute:", dashboardRoute)
+   const supabase = await createClient();
+   try {
+      const table = `${dashboardBtn}`;
+      console.log("🚀 ~ table:", table)
+
+      // Base query: select id and created_at, but sort by id
+      let query = supabase
+         .from(table)
+         .select("id, created_at ")
+         .order("id", { ascending: true });
+
+      if (["time_deadline", "date_deadline"].includes(dashboardRoute)) {
+         query = query
+            .not(dashboardRoute, "is", null)
+            .order("id", { ascending: true });
+      } else if (dashboardRoute === "completed") {
+         query = supabase
+            .from(table)
+            .select("id, created_at ")
+            .eq("completed", true)
+            .order("id", { ascending: true });
+      } else if (dashboardBtn === "repeated_task" && dashboardRoute === "time_bound") {
+         query = supabase
+            .from(table)
+            .select("id, created_at ")
+            .eq("time_bound", true)
+            .not("date_deadline", "is", null)
+            .not("time_deadline", "is", null)
+            .order("id", { ascending: true });
+      } else if (
+         dashboardBtn === "repeated_task" &&
+         ["missed", "completed"].includes(dashboardRoute)
+      ) {
+         // 1) Fetch all matching task IDs
+         const { data: statusRows, error: statusError } = await supabase
+            .from("repeated_task_status")
+            .select("task_id")
+            .eq(dashboardRoute, true)
+            .order("task_id", { ascending: true });
+
+         if (statusError) {
+            console.error("Error fetching repeated_task_status:", statusError);
+            return false;
+         }
+
+         const ids = statusRows?.map(r => r.task_id) ?? [];
+         if (ids.length === 0) return [];
+
+         // 2) Fetch those rows from the main table, sorted by id
+         const { data: rows, error: rowsError } = await supabase
+            .from(table)
+            .select("id, created_at ")
+            .in("id", ids)
+            .order("id", { ascending: true });
+
+         if (rowsError) {
+            console.error("Error fetching tasks by IDs:", rowsError);
+            return false;
+         }
+         return rows;
+      }
+
+      // Execute standard query
+      const { data, error } = await query;
+      if (error) {
+         console.error("Error executing query:", error);
+         return false;
+      }
+      return data ?? [];
+   } catch (err) {
+      console.error("taskPositionRequirement caught error:", err);
+      return false;
+   }
+}
+
+
+// --------------- TaskAttributes ---------------
 export async function TaskAttributes(
-   userId: number,
    condition: "missed" | "completed" | "deleted",
    dashboardBtn: string,
    dashboardRoute: string,
-   taskDetails: { title: string; subtasks: Array<{ id: number; description: string }>; status: Array<{ id: number; completed: boolean | null; missed: boolean | null }> },
-   updatingIndex: number,
-) {
-
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-   const validatedDashboardRoute = dashboardRoute;
-   const validatedCondition = condition;
-   console.log("🚀 ~ validatedDashboardRoute:", validatedDashboardRoute);
-   console.log("🚀 ~ dashboardBtnFormat:", dashboardBtnFormat);
-   console.log("🚀 ~ validatedCondition:", validatedCondition);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "repeated_task_status", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.error(`Invalid table name: ${dashboardBtnFormat}`);
-      return false;
-   }
-
-   const allowedCondition = ["completed", "missed", "deleted"];
-   if (!allowedCondition.includes(validatedCondition)) {
-      console.error(`Invalid condition: ${validatedCondition}`);
-      return false;
-   }
-
-   const allowedRoutes = ["high_priority", "archived", "work", "personal", "time_bound", "main", "repeated", "time_deadline", "date_deadline"];
-   if (!allowedRoutes.includes(validatedDashboardRoute)) {
-      console.error(`Invalid column name: ${validatedDashboardRoute}`);
-      return false;
-   }
-
-   const client = await pool.connect();
+   taskDetails: { title: string; subtasks: any[]; status: any[] },
+   updatingIndex: string
+): Promise<boolean> {
+   const supabase = await createClient();
    try {
-      // Changed: replaced comma with AND in WHERE clause
-      const existingTaskQuery = `SELECT id, task_data->>'subtasks' AS subtasks FROM ${dashboardBtnFormat} WHERE id = $1 AND user_id = $2 AND ${validatedDashboardRoute} = $3`;
-      const existingTaskResult = await client.query(existingTaskQuery, [updatingIndex, userId, true]);
-      console.log("🚀 ~ initial task details:", existingTaskResult.rows);
-
-      if (existingTaskResult.rows.length > 0) {
-         const taskId = existingTaskResult.rows[0].id;
-         console.log("🚀 ~ taskId:", taskId);
-
-         const updatedTaskFormat = JSON.stringify(taskDetails);
-         console.log("🚀 ~ updatedTaskFormat:", updatedTaskFormat);
-
-         if (dashboardBtnFormat === "repeated_task" && (validatedCondition === "missed" || validatedCondition === "completed")) {
-            console.log("repeated task updating started");
-            // Changed: replaced comma with AND in WHERE clause
-            const updateTaskAttributeQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1 WHERE id = $2 AND user_id = $3 AND ${validatedDashboardRoute} = $4`;
-            const updateTaskAttributeValues = [updatedTaskFormat, updatingIndex, userId, true];
-            const updateMainTable = await client.query(updateTaskAttributeQuery, updateTaskAttributeValues);
-            console.log("🚀 ~ updateMainTable:", updateMainTable);
-            if (updateMainTable) {
-               const updateTaskSecondaryQuery = `INSERT INTO repeated_task_status (task_id, user_id, ${validatedCondition}) VALUES ($1, $2, $3)`;
-               const updateTaskSecondaryValues = [taskId, userId, true];
-               const updateSecondaryTable = await client.query(updateTaskSecondaryQuery, updateTaskSecondaryValues);
-               console.log("🚀 ~ updateSecondaryTable:", updateSecondaryTable);
-               return true;
-            } else {
-               console.log("main repeated table was not updated");
-            }
-         } else {
-            console.log("other task updating started");
-            // Changed: replaced comma with AND in WHERE clause
-            const updateTaskAttributeQuery = `UPDATE ${dashboardBtnFormat} SET task_data = $1, ${validatedCondition} = $2 WHERE id = $3 AND user_id = $4 AND ${validatedDashboardRoute} = $5`;
-            const updateTaskAttributeValues = [updatedTaskFormat, true, updatingIndex, userId, true];
-            const updateTaskCondition = await client.query(updateTaskAttributeQuery, updateTaskAttributeValues);
-            console.log("🚀 ~ updateTaskCondition:", updateTaskCondition);
-            return true;
-         }
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.concat("repeated_task_status").includes(table)) {
+         console.error("TaskAttributes: invalid table");
+         return false;
+      }
+      if (!["missed", "completed", "deleted"].includes(condition)) {
+         console.error("TaskAttributes: invalid condition");
+         return false;
+      }
+      if (!ALLOWED_ROUTES.includes(dashboardRoute)) {
+         console.error("TaskAttributes: invalid route");
+         return false;
       }
 
-      console.warn(`No task found with id ${updatingIndex} in ${dashboardBtnFormat}.`);
+      // 1) Ensure task exists
+      const { data: existing, error: e1 } = await supabase
+         .from(table)
+         .select("id")
+         .match({ id: updatingIndex, [dashboardRoute]: true })
+         .single();
+      if (e1 || !existing) {
+         console.warn("TaskAttributes: no matching task");
+         return false;
+      }
+
+      // 2) Update main task_data (and flag for non-repeated)
+      if (!(dashboardBtn === "repeated_task" && (condition === "missed" || condition === "completed"))) {
+         const { error: e2 } = await supabase
+            .from(table)
+            .update({ task_data: taskDetails, [condition]: true })
+            .match({ id: updatingIndex, [dashboardRoute]: true });
+         if (e2) throw e2;
+         return true;
+      }
+
+      // 3) For repeated_task + missed/completed: two-step
+      // 3a) update main table
+      const { error: e3 } = await supabase
+         .from(table)
+         .update({ task_data: taskDetails })
+         .match({ id: updatingIndex, [dashboardRoute]: true });
+      if (e3) throw e3;
+
+      // 3b) insert into repeated_task_status
+      const { error: e4 } = await supabase
+         .from("repeated_task_status")
+         .insert([{ task_id: existing.id, [condition]: true }]);
+      if (e4) throw e4;
+
+      return true;
+   } catch (err) {
+      console.error("TaskAttributes caught error:", err);
       return false;
-   } catch (error: unknown) {
-      console.error("Error updating task condition for task attributes:", error instanceof Error ? error.message : "Unknown error");
-      return false;
-   } finally {
-      client.release();
    }
 }
 
+// --------------- deletedTaskDetails ---------------
 export async function deletedTaskDetails(
-   userId: number,
    dashboardBtn: string,
    dashboardRoute: string
-) {
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-   const validatedDashboardRoute = dashboardRoute;
-   console.log("🚀 ~ dashboardBtnFormat:", dashboardBtnFormat);
-   console.log("🚀 ~ dashboardRoute:", validatedDashboardRoute);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.error(`Invalid table name: ${dashboardBtnFormat}`);
-      return false;
-   }
-
-   const allowedRoutes = ["high_priority", "archived", "main", "repeated", "time_deadline", "date_deadline", "completed", "missed"];
-   if (!allowedRoutes.includes(validatedDashboardRoute)) {
-      console.error(`Invalid column name: ${validatedDashboardRoute}`);
-      return false;
-   }
-
-   const client = await pool.connect();
+): Promise<any[] | false> {
+   const supabase = await createClient();
    try {
-      let taskQuery: string;
-      if (dashboardRoute === "time_deadline" || dashboardRoute === "date_deadline") {
-         // Changed: replaced comma with AND in WHERE clause
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} IS NOT NULL AND user_id = $1 AND deleted = true ORDER BY id ASC`;
-      } else if (dashboardBtnFormat === "repeated_task") {
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} = true AND user_id = $1 AND deleted = true ORDER BY timestamp ASC`;
-      } else {
-         taskQuery = `SELECT id, task_data->>'title' AS title, timestamp as timestamp FROM ${dashboardBtnFormat} WHERE ${validatedDashboardRoute} = true AND user_id = $1 AND deleted = true ORDER BY timestamp ASC`;
+      const table = `${dashboardBtn}_task`;
+      if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
+         console.error("deletedTaskDetails: invalid table or route");
+         return false;
       }
 
-      const taskResult = await client.query(taskQuery, [userId]);
-      const row = taskResult.rows;
-      return row;
-   } catch (error: unknown) {
-      console.error("Error updating task condition for deleted task details:", error instanceof Error ? error.message : "Unknown error");
+      let query = supabase
+         .from(table)
+         .select("id, task_data->>title AS title, created_at")
+         .eq("deleted", true)
+         .order("created_at", { ascending: true });
+
+      if (["time_deadline", "date_deadline"].includes(dashboardRoute)) {
+         query = query.not(dashboardRoute, "is", null);
+      } else {
+         query = query.eq(dashboardRoute, true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data!;
+   } catch (err) {
+      console.error("deletedTaskDetails caught error:", err);
       return false;
-   } finally {
-      client.release();
    }
 }
 
-export async function fetchUserNotification(userId: number) {
-   console.log("🚀 ~ userNotification ~ userId:", userId);
-   const client = await pool.connect();
+// --------------- fetchUserNotification ---------------
+export interface Notification { id: number; notification_data: any }
+export interface DayNotification { date: string; Notification: Notification[] }
+
+export async function fetchUserNotification(
+): Promise<{ notification_details: DayNotification[] } | false> {
+   const supabase = await createClient();
    try {
       const now = new Date();
-      const dayOfWeek = (now.getDay() + 6) % 7; // Monday => 0, Tuesday => 1, …, Sunday => 6
+      const dayOfWeek = (now.getDay() + 6) % 7;
       const monday = new Date(now);
       monday.setDate(now.getDate() - dayOfWeek);
 
-      // Helper to format a Date to 'YYYY-MM-DD'
-      const formatDate = (date: Date) => date.toISOString().slice(0, 10);
-      const todayStr = formatDate(now);
-      const mondayStr = formatDate(monday);
-      console.log("Calculated week: Monday =", mondayStr, "to Today =", todayStr);
-
-      // Declare notification_data as an array of DayNotification objects
+      const formatDate = (d: Date) => d.toISOString().slice(0, 10);
       const notification_details: DayNotification[] = [];
 
-      // Iterate from Monday to today
       for (let d = new Date(monday); d <= now; d.setDate(d.getDate() + 1)) {
-         const dateStr = formatDate(d);
+         const dayStart = `${formatDate(d)}T00:00:00Z`;
+         const dayEnd = `${formatDate(d)}T23:59:59Z`;
+         const { data, error } = await supabase
+            .from("user_notification")
+            .select("id, notification_data")
+            .gte("created_at", dayStart)
+            .lte("created_at", dayEnd);
+         if (error) throw error;
 
-         const query = `
-         SELECT id, notification_data 
-         FROM user_notification
-         WHERE user_id = $1
-           AND timestamp::date = $2;
-       `;
-         const { rows } = await client.query(query, [userId, dateStr]);
-         console.log("🚀 ~ fetchUserNotification ~ rows:", rows)
-
-         // Map the returned rows into Notification objects
-         const notifications: Notification[] = rows.map((row: Notification) => ({
-            id: row.id,
-            notification_data: row.notification_data,
-         }));
-
-         // Create a result object for this day
-         const dayResult: DayNotification = {
-            date: dateStr,
-            Notification: notifications,
-         };
-         notification_details.push(dayResult);
+         notification_details.push({
+            date: formatDate(d),
+            Notification: data ?? [],
+         });
       }
-      console.log("🚀 ~ fetchUserNotification ~ notification_data:", notification_details)
 
       return { notification_details };
-   } catch (error: unknown) {
-      console.log("Error fetching notification in database:", error);
-      throw error;
-   } finally {
-      client.release();
-   }
-}
-
-
-
-export async function storeUserNotification(userId: number, userNotificationData: string) {
-   console.log("🚀 ~ userNotification ~ userId:", userId);
-   const client = await pool.connect();
-   try {
-      // Fixed: Added a comma between $1 and $2 in the VALUES clause.
-      const notificationQuery = await client.query(
-         "INSERT INTO user_notification (user_id, notification_data) VALUES ($1, $2) RETURNING id",
-         [userId, userNotificationData]
-      );
-      const message: boolean = notificationQuery.rows.length > 0 ? true : false;
-      return message;
-   } catch (error: unknown) {
-      console.log("Error fetching notification in database : ", error);
+   } catch (err) {
+      console.error("fetchUserNotification caught error:", err);
       return false;
-   } finally {
-      client.release();
    }
 }
 
-export async function getUserNotificationCount(userId: number) {
-   console.log("🚀 ~ userNotification ~ userId:", userId);
-   const client = await pool.connect();
+// --------------- storeUserNotification ---------------
+export async function storeUserNotification(
+   userNotificationData: string
+): Promise<boolean> {
+   const supabase = await createClient();
+   try {
+      const { error } = await supabase
+         .from("user_notification")
+         .insert([{ notification_data: userNotificationData }]);
+      if (error) throw error;
+      return true;
+   } catch (err) {
+      console.error("storeUserNotification caught error:", err);
+      return false;
+   }
+}
+
+// --------------- getUserNotificationCount ---------------
+export async function getUserNotificationCount(
+): Promise<number | false> {
+   const supabase = await createClient();
    try {
       const now = new Date();
-      const dayOfWeek = (now.getDay() + 6) % 7; // Monday => 0, Tuesday => 1, …, Sunday => 6
+      const dayOfWeek = (now.getDay() + 6) % 7;
       const monday = new Date(now);
       monday.setDate(now.getDate() - dayOfWeek);
 
-      // Helper to format a Date to 'YYYY-MM-DD'
-      const formatDate = (date: Date) => date.toISOString().slice(0, 10);
-      const todayStr = formatDate(now);
-      const mondayStr = formatDate(monday);
-      console.log("Calculated week: Monday =", mondayStr, "to Today =", todayStr);
-
-      // Declare notification_data as an array of objects with a count property
-      const notification_data: { count: number }[] = [];
-
-      // Iterate from Monday to today
+      let total = 0;
       for (let d = new Date(monday); d <= now; d.setDate(d.getDate() + 1)) {
-         const dateStr = formatDate(d);
-
-         const query = `
-            SELECT COUNT(*) AS notification_count
-            FROM user_notification
-            WHERE user_id = $1
-              AND timestamp::date = $2;
-         `;
-         const { rows } = await client.query(query, [userId, dateStr]);
-         console.log("🚀 ~ notificationCount ~ rows:", rows);
-         const dayCount = rows[0];
-         console.log("🚀 ~ notificationCount ~ dayCount:", dayCount);
-
-         // Create a result object for this day and ensure the count is a number
-         const dayResult = {
-            count: Number(dayCount.notification_count),
-         };
-         console.log("🚀 ~ getUserNotificationCount ~ dayResult:", dayResult);
-
-         notification_data.push(dayResult);
+         const dayStart = `${d.toISOString().slice(0, 10)}T00:00:00Z`;
+         const dayEnd = `${d.toISOString().slice(0, 10)}T23:59:59Z`;
+         const { count, error } = await supabase
+            .from("user_notification")
+            .select("*", { count: "exact", head: true })
+            .gte("created_at", dayStart)
+            .lte("created_at", dayEnd);
+         if (error) throw error;
+         total += count ?? 0;
       }
-      console.log("🚀 ~ getUserNotificationCount ~ notification_data:", notification_data);
-
-      // Sum up all daily counts
-      const totalCount = notification_data.reduce((acc, item) => acc + item.count, 0);
-      return totalCount;
-   } catch (error: unknown) {
-      console.log("Error fetching notification in database:", error);
-      throw error;
-   } finally {
-      client.release();
-   }
-}
-
-export async function getUserSearchResult(id: number, query: string, dashboardBtn: string) {
-   console.log("🚀 ~ getUserSearchResult ~ dashboardBtn:", dashboardBtn);
-   console.log("🚀 ~ getUserSearchResult ~ query:", query);
-   console.log("🚀 ~ getUserSearchResult ~ id:", id);
-
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-   const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
-
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
+      return total;
+   } catch (err) {
+      console.error("getUserNotificationCount caught error:", err);
       return false;
    }
-
-   const client = await pool.connect();
-   try {
-      const sqlQuery =
-         `SELECT id, task_data->>'title' AS title
-      FROM ${dashboardBtnFormat}
-      WHERE user_id = $1
-      AND (
-          (task_data->>'title') LIKE '%' || $2 || '%'
-          OR EXISTS (
-             SELECT 
-             FROM jsonb_array_elements(task_data->'subtasks') AS sub
-             WHERE sub->>'description' LIKE '%' || $2 || '%'
-          )
-      );
-   `;
-      const result = await client.query(sqlQuery, [id, query]);
-      console.log("🚀 ~ getUserSearchResult ~ result.rows:", result.rows)
-      return result.rows;
-   } catch (error: unknown) {
-      console.log("Error fetching data from database:", error);
-      throw error;
-   } finally {
-      client.release();
-   }
 }
-
-
-export async function getTaskDetailsForPreview(userId: number, taskId: number, dashboardBtn: string) {
-
-   const dashboardBtnFormat = `${dashboardBtn}_task`;
-
-   if (!userId || !taskId || dashboardBtnFormat === "") {
-      console.log("Invalid input parameters");
-      return false; // Added early return for invalid parameters
-   }
-
-   console.log("🚀 ~ showSavedTaskSummaryView ~ dashboardBtnFormat:", dashboardBtnFormat);
-
-   // Validate table and column names
-   const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
-   if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
-      return false;
-   }
-
-   const client = await pool.connect();
-   try {
-      const taskQuery = `SELECT task_data->>'title' as title, task_data->>'subtasks' AS subtasks, task_data->>'status' AS status FROM ${dashboardBtnFormat} WHERE id = $1 AND user_id = $2`
-      const taskResult = await client.query(taskQuery, [taskId, userId]);
-      const row = taskResult.rows[0];
-      console.log("🚀 ~ showSavedTaskDetailView ~ row:", row);
-      return row;
-   } catch (error: unknown) {
-      console.log("Error fetching data from database:", error);
-      throw error;
-   } finally {
-      client.release();
-   }
-} 

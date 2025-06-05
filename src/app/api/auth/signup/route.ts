@@ -1,5 +1,6 @@
-import CreateNewUserAccount from "@/app/component/backend_component/LoginBackend";
-import { encrypt, storeSession } from "@/app/lib/auth";
+"use server";
+import { createClient } from "@/app/utils/supabase/db";
+import { revalidatePath } from 'next/cache'
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -8,35 +9,25 @@ export async function POST(request: Request) {
     console.log("🚀 ~ POST ~ password:", password)
     console.log("🚀 ~ POST ~ email:", email)
     console.log("🚀 ~ POST ~ userName:", userName)
-    const result = await CreateNewUserAccount(userName, email, password);
 
-    if (!result || "error" in result) {
-      return NextResponse.json({ error: result?.error || "Unexpected error" }, { status: 400 });
+    const supabase = await createClient()
+    // type-casting here for convenience
+    // in practice, you should validate your inputs
+    const data = {
+      email: email as string,
+      password: password as string,
     }
-
-    const user = result.user;
-    const sessionToken = await encrypt({ userId: Number(user.id) });
-    console.log("🚀 ~ POST ~ sessionToken:", sessionToken)
-
-    // Store session in PostgreSQL
-    const sessionStored = await storeSession(user.id, sessionToken);
-    if (!sessionStored) {
-      return NextResponse.json({ error: "Failed to store session" }, { status: 500 });
+    const { error } = await supabase.auth.signUp(data)
+    if (error) {
+      console.error("Signup error:", error);
+      // Redirect back to home on error
+      return NextResponse.redirect(new URL('/', request.url), 307);
     }
-
-    const response = NextResponse.json({ success: true });
-    response.cookies.set({
-      name: "session_token",
-      value: sessionToken,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
-    console.log("🚀 ~ POST ~ response.cookies.set:", response.cookies)
-    return response;
+    revalidatePath('/', 'layout')
+    // On success, send user to Dashboard
+     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    console.log("🚀 ~ POST ~ error : unknown:", error)
-
+    console.log("🚀 ~ POST ~ error:", error)
+     return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
   }
 }

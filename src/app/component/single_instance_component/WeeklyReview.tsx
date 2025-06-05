@@ -30,7 +30,7 @@ interface weeklyLogDataType {
    }
 }
 
-export default function WeeklyBarChart({ userId, dashboardBtn }: { userId: number, dashboardBtn: string }) {
+export default function WeeklyBarChart({ dashboardBtn }: { dashboardBtn: string }) {
    const [dashboardBtnType, setDashboardBtnType] = useState("Personal Task")
    const [dashboardDropdown, setDashboardDropdown] = useState(false)
    const [activeDashboardBtn, setActiveDashboardBtn] = useState("personal")
@@ -80,14 +80,14 @@ export default function WeeklyBarChart({ userId, dashboardBtn }: { userId: numbe
    }, [dashboardBtn]);
 
 
-   const fetchTaskLog = useCallback(async (userId: number) => {
+   const fetchTaskLog = useCallback(async () => {
       console.log("🚀 ~ fetchTaskLog ~ DashboardBtnType:", activeDashboardBtn)
       const response = await fetch("/api/weeklyLog", {
          method: "POST",
          headers: {
             "Content-Type": "application/json",
          },
-         body: JSON.stringify({ userId, activeDashboardBtn }),
+         body: JSON.stringify({ activeDashboardBtn }),
       });
       const logData = await response.json();
       if (logData.success) {
@@ -100,8 +100,8 @@ export default function WeeklyBarChart({ userId, dashboardBtn }: { userId: numbe
 
 
    useEffect(() => {
-      fetchTaskLog(userId)
-   }, [fetchTaskLog, userId])
+      fetchTaskLog()
+   }, [fetchTaskLog])
 
    const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -141,7 +141,7 @@ export default function WeeklyBarChart({ userId, dashboardBtn }: { userId: numbe
                               className={weeklyReview.dashboard_options}
                               onClick={() => {
                                  handleOptionClick(option as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task")
-                                 fetchTaskLog(userId)
+                                 fetchTaskLog()
                               }}
                            >
                               {option}

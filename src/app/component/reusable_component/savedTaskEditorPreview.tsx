@@ -10,12 +10,10 @@ interface savedTaskDataType {
 }
 
 export default function ShowSavedTaskPreview({
-   userId,
    dashboardBtn,
    taskId,
 }: {
-   userId: number,
-   taskId: number;
+   taskId: string;
    dashboardBtn: string;
 }) {
    const [savedTask, setSavedTask] = useState<savedTaskDataType>();
@@ -42,23 +40,17 @@ export default function ShowSavedTaskPreview({
    const fetchTaskDetailsPreview = useCallback(() => {
       async function savedTaskQuery() {
          try {
-            if (taskId !== null && userId !== null && dashboardBtn !== "") {
+            if (taskId !== null && dashboardBtn !== "") {
                const dashboardBtnType = dashboardBtnFormat(dashboardBtn as "personal" | "repeated" | "time_bound" | "work")
                setTaskType(dashboardBtnType)
 
-               const savedTaskArray = await getTaskDetailsForPreview(userId, taskId, dashboardBtn);
-               console.log("🚀 ~ savedTaskQuery ~ savedTaskArray:", savedTaskArray)
-
-               const taskFormat = {
-                  ...savedTaskArray,
-                  subtasks: JSON.parse(savedTaskArray.subtasks),
-                  status: JSON.parse(savedTaskArray.status),
-               };
-               console.log("🚀 ~ savedTaskQuery ~ taskFormat:", taskFormat)
-
-               setSavedTask(taskFormat); // Save the processed task
+               const result = await getTaskDetailsForPreview(taskId, dashboardBtn);
+               if (!result) {
+                  return;
+               }
+               setSavedTask(result); // Save the processed task
             } else {
-               console.warn("Invalid taskId provided. Skipping query.");
+               console.log("Invalid taskId provided. Skipping query.");
             }
          } catch (error: unknown) {
             console.error("Error Fetching Task:", error);
@@ -66,7 +58,7 @@ export default function ShowSavedTaskPreview({
       }
 
       savedTaskQuery();
-   }, [userId, taskId, dashboardBtn]);
+   }, [taskId, dashboardBtn]);
 
    useEffect(() => {
       fetchTaskDetailsPreview()

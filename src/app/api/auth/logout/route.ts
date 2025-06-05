@@ -1,25 +1,24 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { createClient } from '@/app/utils/supabase/db';
+import { revalidatePath } from 'next/cache'
+import { NextResponse } from 'next/server'
 
 
 
 export async function DELETE() {
   console.log("🚀 ~ DELETE ~ DELETE:", DELETE)
   try {
-    const cookieStore = await cookies()
-    console.log("🚀 ~ DELETE ~ cookieStore:", cookieStore)
-    const deleteCookie = cookieStore.delete("session_token")
-    console.log("🚀 ~ DELETE ~ deleteCookie:", deleteCookie)
-    const deleteSession = cookieStore.delete("userId")
-    console.log("🚀 ~ DELETE ~ deleteSession:", deleteSession)
-
-    if (deleteCookie && deleteSession) {
-      const response = NextResponse.json({ success: true });
-      return response
+    const supabase = await createClient()
+    // Check if a user's logged in
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.auth.signOut()
     }
-
+    revalidatePath('/', 'layout')
+    return NextResponse.redirect('/')
   } catch (error: unknown) {
     console.log("Error deleting  session and token", error)
   }
