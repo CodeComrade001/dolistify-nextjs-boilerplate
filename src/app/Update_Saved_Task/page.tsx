@@ -1,12 +1,11 @@
-// app/Dashboard/page.tsx
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import EditSavedTask from "./updateSavedTask";
 import savedTaskStyles from "../styles/savedTaskLayout.module.css";
 import { useSearchParams } from 'next/navigation';
 
-export default function UpdateSavedTaskHomePage() {
-  // replicate the same state/hooks/logic you had in DashboardLayout:
+// Create a separate component for the content that uses useSearchParams
+function SavedTaskContent() {
   const [taskId, setTaskId] = useState<string>();
   const [taskQueryPath, setTaskQueryPath] = useState<{ dashboardBtn: string, dashboardRoute: string }>({
     dashboardBtn: "",
@@ -23,9 +22,6 @@ export default function UpdateSavedTaskHomePage() {
 
       try {
         if (param1 && param2 && param3) {
-          console.log("🚀 ~ param3:", param3);
-          console.log("🚀 ~ param2:", param2);
-          console.log("🚀 ~ param1:", param1);
           setTaskId(param1);
           setTaskQueryPath({
             dashboardBtn: param2,
@@ -41,22 +37,24 @@ export default function UpdateSavedTaskHomePage() {
     savedTaskQuery();
   }, [searchParams]);
 
-  function SearchBarFallback() {
-    return <>fetch updatedTask please wait</>
+  if (!taskId || !taskQueryPath.dashboardBtn || !taskQueryPath.dashboardRoute) {
+    return <p>Fetching task... Please wait</p>;
   }
 
   return (
+    <EditSavedTask
+      taskId={taskId}
+      dashboardBtn={taskQueryPath.dashboardBtn}
+      dashboardRoute={taskQueryPath.dashboardRoute}
+    />
+  );
+}
+
+export default function UpdateSavedTaskHomePage() {
+  return (
     <section className={savedTaskStyles.body_section}>
-       <Suspense fallback={<SearchBarFallback />}>
-      {taskId && taskQueryPath.dashboardBtn && taskQueryPath.dashboardRoute ? (
-        <EditSavedTask
-          taskId={taskId}
-          dashboardBtn={taskQueryPath.dashboardBtn}
-          dashboardRoute={taskQueryPath.dashboardRoute}
-        />
-      ) : (
-        <p> fetching task animation Loading...</p>
-      )}
+      <Suspense fallback={<p>Loading task data...</p>}>
+        <SavedTaskContent />
       </Suspense>
     </section>
   );

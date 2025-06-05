@@ -222,30 +222,50 @@ export async function showSavedTaskDetailView(
 }
 
 
+// Assume ALLOWED_TABLES = ["personal_task","work_task", …]
 export async function getUserSearchResult(
-   query: string,
-   dashboardBtn: string
-) {
-   const supabase = await createClient();
-   try {
-      const table = `${dashboardBtn}_task`;
-      if (!ALLOWED_TABLES.includes(table)) {
-         console.error("getUserSearchResult: Invalid table");
-         return false;
-      }
+  query: string,
+  dashboardBtn: string
+): Promise<{ id: string; title: string }[] | null> {
+  const supabase = await createClient();
 
-      const { data, error } = await supabase
-         .from(table)
-         .select("id, task_data->>title AS title")
-         .or(`task_data->>title.ilike.%${query}%,task_data->>subtasks.ilike.%${query}%`)
+  // 1) Refuse empty or whitespace‐only search
+  if (!query.trim()) {
+    return [];
+  }
 
-      if (error) throw error;
-      return data;
-   } catch (err) {
-      console.error("getUserSearchResult caught error:", err);
-      return false;
-   }
+  // 2) Build and validate the table name
+  const table = `${dashboardBtn}_task`;
+  if (!ALLOWED_TABLES.includes(table)) {
+    console.error("getUserSearchResult: Invalid table →", table);
+    return null;
+  }
+
+  // 3) Escape any % or , that might break the PostgREST `.or(...)` syntax
+  const safeQuery = query.replace(/%/g, "\\%").replace(/,/g, "\\,");
+
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select("id, task_data->>title")
+      .or(
+        `task_data->>title.ilike.%${safeQuery}%,` +
+        `task_data->>subtasks.ilike.%${safeQuery}%`
+      );
+
+    if (error) {
+      console.error("getUserSearchResult supabase error:", error);
+      return null;
+    }
+
+    // `data` is now an array of `{ id: string; title: string }`
+    return data;
+  } catch (err) {
+    console.error("getUserSearchResult caught exception:", err);
+    return null;
+  }
 }
+
 
 export async function getTaskDetailsForPreview(
    taskId: string,

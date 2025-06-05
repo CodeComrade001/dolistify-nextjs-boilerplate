@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     console.log("🚀 ~ POST ~ userSearchBarDashboardBtn:", userSearchBarDashboardBtn)
     console.log("🚀 ~ POST ~ query:", query)
     console.log("🚀 ~ POST ~ userId:", userId)
-    const queryResult = await getUserSearchResult(userId, query, userSearchBarDashboardBtn);
+    const queryResult = await getUserSearchResult( query, userSearchBarDashboardBtn);
 
     if (Array.isArray(queryResult)) {
       const dataFormat = queryResult.map((item) => {
