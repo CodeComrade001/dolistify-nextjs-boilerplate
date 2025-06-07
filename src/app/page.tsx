@@ -67,7 +67,7 @@ export default function HomePage() {
   }
 
   async function handleSignUpBtn() {
-    const { userName, email, password, password0 } = userSignUpDetails;
+    const { email, password, password0 } = userSignUpDetails;
 
     if (password !== password0) {
       return;
@@ -76,7 +76,7 @@ export default function HomePage() {
     try {
       // Validate the form data using your Zod schema.
       SignupFormSchema.parse({
-        name: userName,
+        
         email: email,
         password: password,
       });
@@ -86,7 +86,7 @@ export default function HomePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userName, email, password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
       if (data.success) {
