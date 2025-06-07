@@ -14,7 +14,6 @@ export default function ProfileDetails() {
       async function getUserDetails() {
          try {
             const userFetchedDetails = await GetUserDetails();
-            console.log("🚀 ~ getUserDetails ~ userFetchedDetails:", userFetchedDetails)
             if (userFetchedDetails) {
                setUserDetails({
                   username: userFetchedDetails.username,
@@ -22,8 +21,8 @@ export default function ProfileDetails() {
                   avatar_url : userFetchedDetails.avatar_url,
                });
             }
-         } catch (error: unknown) {
-            console.log("error fetching username and email", error)
+         } catch  {
+            return
          }
       }
       getUserDetails()

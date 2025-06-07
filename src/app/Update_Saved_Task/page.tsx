@@ -28,10 +28,10 @@ function SavedTaskContent() {
             dashboardRoute: param3,
           });
         } else {
-          console.log("Error fetching params:", { param1, param2, param3 });
+          return
         }
-      } catch (error) {
-        console.error("Error fetching params:", error);
+      } catch {
+        return
       }
     };
     savedTaskQuery();

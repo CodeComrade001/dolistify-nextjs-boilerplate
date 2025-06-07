@@ -331,9 +331,6 @@
 }
 
 .dashboard_options:hover {
-}
-
-.dashboard_options:hover {
   bottom: -25px;
   animation: moveup 0.3s ease 0.1s forwards;
 }

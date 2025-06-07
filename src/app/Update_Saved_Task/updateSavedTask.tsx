@@ -1,4 +1,3 @@
-"use client";
 import React, { useCallback, useEffect, useState } from "react";
 import editSavedTask from "../styles/editSavedTask.module.css";
 import { showSavedTaskDetailView, updateTaskInformation } from "../component/backend_component/TaskBackend";
@@ -24,21 +23,17 @@ export default function EditSavedTask({
   const [savedTaskStatus, setSavedTaskStatus] = useState<string>("Update");
   const [deletedSubtasks, setDeletedSubtasks] = useState<number>(0)
   const [missedTask, setMissedTask] = useState("");
-  console.log("🚀 ~ missedTask:", missedTask)
   const [completedTask, setCompletedTask] = useState("");
-  console.log("🚀 ~ completedTask:", completedTask)
   const [theme, setTheme] = useState('light');
   const router = useRouter();
 
   const addNewTaskRow = (prevTask: savedTaskDataType | undefined, index: number): savedTaskDataType | undefined => {
     if (!prevTask) return undefined;
     if (index < 0 || index >= prevTask.subtasks.length) {
-      console.log("Invalid index for completed or missed.");
     }
 
     // Calculate the maximum id among existing subtasks; default to 0 if none exist.
     const lastMaxId = prevTask.subtasks.reduce((max, task) => Math.max(max, task.id), 0);
-    console.log("🚀 ~ addNewTaskRow ~ lastMaxId:", lastMaxId)
     const newTask = { id: lastMaxId + 1, description: "" };
 
     // Similarly, calculate the maximum id for status entries.
@@ -54,7 +49,6 @@ export default function EditSavedTask({
 
 
   const addExtraInputColumn = (e: React.KeyboardEvent, index: number) => {
-    console.log("🚀 ~ addExtraInputColumn ~ e.Key:", e.key)
 
     if (e.key === "Enter") {
       setSavedTask((prevTask) => addNewTaskRow(prevTask, index));
@@ -67,7 +61,6 @@ export default function EditSavedTask({
     if (!prevTask) return undefined;
 
     if (index < 0 || index >= prevTask.subtasks.length) {
-      console.error("Invalid index for deletion.");
       return prevTask; // Return the unchanged object if the index is invalid
     }
     if (prevTask.subtasks.length !== 1) {
@@ -93,22 +86,18 @@ export default function EditSavedTask({
   };
 
   const updateSavedTask = useCallback(async (taskId: string) => {
-    console.log("🚀 ~ updateSavedTask ~ updateSavedTask:", updateSavedTask)
-    if (!editedTask ) return;
+    if (!editedTask) return;
     try {
       setSavedTaskStatus("Saving task...")
       const updatingId = taskId;
       const updatedTaskDetails = editedTask;
-      const updatingTask = await updateTaskInformation( dashboardBtn, updatedTaskDetails as savedTaskDataType, updatingId)
-      console.log("🚀 ~ updateSavedTask ~ updatingTask:", updatingTask)
+      const updatingTask = await updateTaskInformation(dashboardBtn, updatedTaskDetails as savedTaskDataType, updatingId)
       if (updatingTask) {
         setSavedTaskStatus("Updating successful");
         router.push("/Dashboard")
       }
-    } catch (error: unknown) {
+    } catch {
       setSavedTaskStatus("Updating Failed");
-      const errorMessage = (error instanceof Error) ? error.message : "unknown Error";
-      console.log("Error send Task Details", errorMessage);
     }
 
   }, [dashboardBtn, editedTask, router]);
@@ -117,18 +106,15 @@ export default function EditSavedTask({
     if (!prevTask) return undefined;
 
     if (index < 0 || index >= prevTask.subtasks.length) {
-      console.error("Invalid index for completed or missed.");
       return prevTask; // Return the unchanged object if the index is invalid
     }
 
     const subtask = prevTask.subtasks[index];
 
     if (!subtask) {
-      console.log("Subtask not found at index:", index);
       return prevTask;
     }
 
-    console.log("Completing subtask:", subtask);
 
     // Assuming your status array structure needs to be updated
     const updatedStatus = prevTask.status.map((status, idx) => {
@@ -139,7 +125,6 @@ export default function EditSavedTask({
         return status
       }
     });
-    console.log("🚀 ~ completeTaskRow ~ updatedStatus:", updatedStatus)
 
     return { ...prevTask, status: updatedStatus };
   }
@@ -148,18 +133,15 @@ export default function EditSavedTask({
     if (!prevTask) return undefined;
 
     if (index < 0 || index >= prevTask.subtasks.length) {
-      console.error("Invalid index for completed or missed.");
       return prevTask; // Return the unchanged object if the index is invalid
     }
 
     const subtask = prevTask.subtasks[index];
 
     if (!subtask) {
-      console.log("Subtask not found at index:", index);
       return prevTask;
     }
 
-    console.log("Completing subtask:", subtask);
 
     // Assuming your status array structure needs to be updated
     const updatedStatus = prevTask.status.map((status, idx) => {
@@ -170,7 +152,6 @@ export default function EditSavedTask({
         return status
       }
     });
-    console.log("🚀 ~ completeTaskRow ~ updatedStatus:", updatedStatus)
 
     return { ...prevTask, status: updatedStatus };
   }
@@ -203,29 +184,26 @@ export default function EditSavedTask({
 
     async function savedTaskQuery() {
       try {
-        if (taskId !== null ) {
-          const result = await showSavedTaskDetailView( taskId, dashboardBtn, dashboardRoute);
+        if (taskId !== null) {
+          const result = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
           if (!isMounted) return;
 
-          console.log("🚀 ~ savedTaskQuery ~ result:", result);
           if (result == undefined) {
-            console.log("No saved task found");
           } else {
             setSavedTask(result); // Save the processed task
             setEditedTask(result);
           }
         } else {
-          console.warn("Invalid taskId provided. Skipping query.");
         }
-      } catch (error: unknown) {
-        console.error("Error Fetching Task:", error);
+      } catch {
+        return
       }
     }
     savedTaskQuery();
     return () => {
       isMounted = false;
     };
-  }, [ taskId, dashboardBtn, dashboardRoute]);
+  }, [taskId, dashboardBtn, dashboardRoute]);
 
 
   function taskIndicator(receivedClassName: "missedTaskIndicator" | "completeTaskIndicator") {
@@ -316,14 +294,13 @@ export default function EditSavedTask({
                   <tbody className={editSavedTask.table_body}>
                     {savedTask.status && savedTask.subtasks.map((eachTask, index) => {
                       const taskStatus = savedTask.status[index];
-
                       return (
                         <tr
                           key={eachTask.id}
                           className={`
                                        ${editSavedTask.content}
-                                       ${taskStatus.completed ? editSavedTask.completeIndicator : ''}
-                                       ${taskStatus.missed ? editSavedTask.missedIndicator : ''}
+                                       ${taskStatus.completed ? editSavedTask.completeIndicator : ""}
+                                       ${taskStatus.missed ? editSavedTask.missedIndicator : ""}
                                     `}
                         >
                           <th className={editSavedTask.mark}>

@@ -2,10 +2,7 @@
 import { taskPositionRequirement } from "../backend_component/TaskBackend";
 
 // class taskPosition {}
-export default async function taskPosition( dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
-   console.log("🚀 ~ taskPosition ~ dashboardRoute:", dashboardRoute)
-   console.log("🚀 ~ taskPosition ~ dashboardBtn:", dashboardBtn)
-   console.log("🚀 ~ taskPosition ~ taskPosition:", taskPosition)
+export default async function taskPosition(dashboardBtn: string, dashboardRoute: string): Promise<{ id: number; row: number; column: number }[] | boolean> {
    let dashboardBtnFormat: string;
    let validatedDashboardRoute: string | undefined;
    if (dashboardBtn === "completed" || dashboardBtn === "missed") {
@@ -22,22 +19,18 @@ export default async function taskPosition( dashboardBtn: string, dashboardRoute
 
    const allowedDashboard = ["personal_task", "repeated_task", "completed_task", "missed_task", "time_bound_task", "work_task"];
    if (!allowedDashboard.includes(dashboardBtnFormat)) {
-      console.log(`Table not found or wrong table format: ${dashboardBtnFormat}`);
       return false;
    }
 
    const allowedRoutes = ["completed", "high_priority", "personal_task", "work_task", "time_bound_task", "archived", "missed", "main", "time_deadline", "date_deadline", "personal", "work", "time_bound"]; // Add more valid column names if necessary
    if (!allowedRoutes.includes(validatedDashboardRoute)) {
-      console.log(`Invalid column name: ${validatedDashboardRoute}`);
       return false;
    }
 
    try {
-      const result = await taskPositionRequirement( dashboardBtnFormat, validatedDashboardRoute);
-      console.log("🚀 ~ taskPosition ~ result:", result)
+      const result = await taskPositionRequirement(dashboardBtnFormat, validatedDashboardRoute);
 
       if (!result) {
-         console.log("Error fetching task");
          return false;
       }
 
@@ -96,13 +89,10 @@ export default async function taskPosition( dashboardBtn: string, dashboardRoute
             // Add the processed data to the result array
             result.push({ id, row, column });
          });
-         console.log("🚀 ~ taskAddedArray.forEach ~ result:", result)
          return result;
       })();
       return taskPosition;
-   } catch (error: unknown) {
-      const errorMessage = (error instanceof Error) ? error.message : "unknown Message";
-      console.log("error fetching timestamp", errorMessage)
+   } catch  {
       return false;
    }
 }

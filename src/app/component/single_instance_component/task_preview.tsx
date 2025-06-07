@@ -28,7 +28,6 @@ export default function TaskDisplay({
    sendingTaskPreviewPath: (sentTaskId: string, sentDashboardBtn: string) => void;
 }) {
    const [tasks, setTasks] = useState<TaskQueryResult[]>([]);
-   console.log("🚀 ~ tasks:", tasks)
    const [taskStyle, setTaskStyle] = useState<{ [key: string]: React.CSSProperties }>({});
    const [isStylesReady, setIsStylesReady] = useState(false);
    const [userFullTask, setUserFullTask] = useState<savedTaskDataType | null>(null)
@@ -36,15 +35,12 @@ export default function TaskDisplay({
    const setTaskPlacement = useCallback(async (id: number): Promise<React.CSSProperties> => {
       try {
          const taskPositionArray = (await taskPosition(dashboardBtn, dashboardRoute)) || [];
-         console.log("🚀 ~ setTaskPlacement ~ taskPositionArray:", taskPositionArray)
          if (!Array.isArray(taskPositionArray)) {
-            console.error("Invalid taskPositionArray");
             return {};
          }
          const item = taskPositionArray.find((pos) => pos.id === id);
          return item ? { gridRowStart: item.row, gridColumnStart: item.column } : {};
-      } catch (error) {
-         console.error("Error setting task placement:", error);
+      } catch {
          return {};
       }
    }, [dashboardBtn, dashboardRoute])
@@ -53,7 +49,6 @@ export default function TaskDisplay({
       try {
          setTasks([])
          const queryResult = await showSavedTaskSummaryView(dashboardBtn, dashboardRoute);
-         console.log("🚀 ~ fetchTasksSummaryView ~ queryResult:", queryResult)
          if (Array.isArray(queryResult)) {
             setTasks(queryResult);
             const styles = await Promise.all(
@@ -65,29 +60,23 @@ export default function TaskDisplay({
          } else {
             setTasks([]);
          }
-      } catch (error) {
-         console.error("Error fetching tasks:", error);
+      } catch {
          setTasks([]);
       }
    }, [setTaskPlacement]);
 
    const handleTaskUpdate = async (taskId: string, condition: "deleted" | "missed" | "completed") => {
       try {
-         console.log("🚀 ~ handleTaskUpdate ~ taskId:", taskId)
          // First, fetch the full task details
          const userFullTaskFetching = await fetchFullTask(taskId, dashboardBtn, dashboardRoute);
-         console.log("🚀 ~ handleTaskUpdate ~ fullTask:", userFullTaskFetching)
 
          if (userFullTaskFetching !== null && userFullTask !== null) {
             // Optionally update state if needed:
             // Then update the task condition using the fetched details
             await setTaskCondition(taskId, dashboardBtn, dashboardRoute, condition, userFullTask);
          } else {
-            console.error("Full task not found for id:", taskId);
-            console.error("user Full task is null:", userFullTask);
          }
-      } catch (error) {
-         console.log("🚀 ~ handleTaskUpdate ~ error:", error)
+      } catch {
       }
    };
 
@@ -96,13 +85,11 @@ export default function TaskDisplay({
          const result = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
 
          if (result == null) {
-            console.log("No saved task found");
             return null;
-         } 
+         }
          setUserFullTask(result)
          return;
-      } catch (error: unknown) {
-         console.error("Error Fetching full Task:", error);
+      } catch {
          return null;
       }
    }, [])
@@ -125,58 +112,40 @@ export default function TaskDisplay({
       dashboardRoute: string,
       condition: "deleted" | "missed" | "completed",
       taskDetails: savedTaskDataType | null
-   ) {
-      console.log("🚀 ~ setTaskCondition ~ before taskId:", taskId);
-      console.log("setTaskCondition has started");
+   ): Promise<boolean> {
+      if (!taskDetails) return false;
+
+      // define how each condition affects the status flags
+      const flagUpdates: Record<"missed" | "completed", { missed: boolean; completed: boolean }> = {
+         missed: { missed: true, completed: false },
+         completed: { missed: false, completed: true },
+      };
+
+      // if it’s “missed” or “completed”, build a new status array
+      let payload = taskDetails;
+      if (condition in flagUpdates) {
+         const flags = flagUpdates[condition as "missed" | "completed"];
+         payload = {
+            ...taskDetails,
+            status: taskDetails.status.map((s) => ({ ...s, ...flags })),
+         };
+      }
+      // else (e.g. “deleted”), we just send the unchanged taskDetails
+
       try {
-         if (taskDetails !== null) {
-            // For example, if condition is "missed", update the status:
-            if (condition === "missed") {
-               const updatedStatus = taskDetails.status.map((item) => ({
-                  ...item,
-                  missed: true,
-                  completed: false,
-               }));
-               // If you want to update state as well:
-               const updatedTask = {
-                  ...taskDetails,
-                  status: updatedStatus,
-               };
-
-               console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
-               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
-               console.log(result ? "successful set task condition" : "failed to set task condition");
-               return true;
-            }
-            // Similarly handle "completed" and "deleted"
-            else if (condition === "completed") {
-               const updatedStatus = taskDetails.status.map((item) => ({
-                  ...item,
-                  missed: false,
-                  completed: true,
-               }));
-
-               const updatedTask = {
-                  ...taskDetails,
-                  status: updatedStatus,
-               };
-               console.log("🚀 ~ updatedStatus ~ taskDetails:", updatedTask);
-
-               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, updatedTask, taskId);
-               console.log(result ? "successful set task condition" : "failed to set task condition");
-               return true;
-            } else {
-               const result = await TaskAttributes(condition, dashboardBtn, dashboardRoute, taskDetails, taskId);
-               console.log("🚀 ~ taskDetails:", taskDetails);
-               console.log(result ? "successful set task condition" : "failed to set task condition");
-               return true;
-            }
-         }
-      } catch (error: unknown) {
-         console.error("Error updating task condition:", error instanceof Error ? error.message : "Unknown error");
+         const ok = await TaskAttributes(
+            condition,
+            dashboardBtn,
+            dashboardRoute,
+            payload,
+            taskId
+         );
+         return Boolean(ok);
+      } catch {
          return false;
       }
    }
+
 
    function sendTaskPreviewQuery(sentTaskId: string, sentDashboardBtn: string) {
       sendingTaskPreviewPath(sentTaskId, sentDashboardBtn)

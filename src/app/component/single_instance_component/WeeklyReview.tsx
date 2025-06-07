@@ -35,8 +35,6 @@ export default function WeeklyBarChart({ dashboardBtn }: { dashboardBtn: string 
    const [dashboardDropdown, setDashboardDropdown] = useState(false)
    const [activeDashboardBtn, setActiveDashboardBtn] = useState("personal")
    const [weeklyLogData, setWeeklyLogData] = useState<null | weeklyLogDataType>(null)
-   console.log("🚀 ~ WeeklyBarChart ~ weeklyLogData:", weeklyLogData)
-   console.log("🚀 ~ WeeklyBarChart ~ activeDashboardBtn:", activeDashboardBtn)
 
    function handleOptionClick(taskType: "Personal Task" | "personal" | "work" | "time_bound" | "repeated" | "Work Task" | "Time-bound Task" | "Repeated Task") {
       switch (taskType) {
@@ -81,7 +79,6 @@ export default function WeeklyBarChart({ dashboardBtn }: { dashboardBtn: string 
 
 
    const fetchTaskLog = useCallback(async () => {
-      console.log("🚀 ~ fetchTaskLog ~ DashboardBtnType:", activeDashboardBtn)
       const response = await fetch("/api/weeklyLog", {
          method: "POST",
          headers: {
@@ -91,10 +88,9 @@ export default function WeeklyBarChart({ dashboardBtn }: { dashboardBtn: string 
       });
       const logData = await response.json();
       if (logData.success) {
-         console.log("🚀 ~ fetchTaskLog ~ data:", logData)
          setWeeklyLogData(logData.data)
       } else {
-         console.error("log error:", logData.error);
+         return 
       }
    }, [activeDashboardBtn])
 

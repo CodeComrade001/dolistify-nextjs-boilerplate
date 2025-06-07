@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bungee+Tint&family=Inria+Sans:ital,wght@0,400;0,700;1,300;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poetsen+One&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bungee+Tint&family=Inria+Sans:ital,wght@0,400;0,700;1,300;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poetsen+One&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
 /* TARGETING ALL BUTTON ELEMENT */
 .dashboard-body-whiteTheme *,
 .dashboard-body-blackTheme * {
@@ -1236,3 +1236,55 @@ input::placeholder {
 /* SUB NAV CSS STYLES--STOP */
 
 /* MEDIA QUERY CSS STYLES START */
+
+/* css for lower sreens */
+
+@media (min-width: 768px) {
+  .footer {
+    flex-direction: column;
+  }
+
+  .full-body {
+    /* Make sure it actually scrolls: */
+    grid-template-rows: 6% 8% 53% 50%;
+    overflow-y: auto;
+
+    /* smooth scrolling when jumping via anchors or JS */
+    scroll-behavior: smooth;
+  }
+
+  /* — Optional: custom scrollbar styling for WebKit (Chrome, Safari) — */
+  .full-body::-webkit-scrollbar {
+    width: 8px;
+  }
+  .full-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .full-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .full-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* — Optional: Firefox scrollbar styling — */
+  .full-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+  }
+  .header {
+    position: sticky;
+  }
+  .sub-header-container {
+    position: sticky;
+  }
+  .weekly-review {
+    min-height: 60%;
+  }
+  .ignored {
+    min-height: 60%;
+  }
+}

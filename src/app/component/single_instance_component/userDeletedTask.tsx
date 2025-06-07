@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import DeletedTaskStyles from "../../styles/deletedTask.module.css";
-import { deletedTaskDetails } from "../backend_component/TaskBackend";
+import { deletedTaskDetails, deletePermanently, restoreDeletedTask } from "../backend_component/TaskBackend";
 import LoaderIcon from "../reusable_component/LoadingIcon";
 
 interface savedTaskDataType {
-   id: number;
+   id: string;
    title: string;
    timestamp: string;
    subtasks: Array<{ id: number; description: string }>;
@@ -92,20 +92,35 @@ export default function DeletedTask() {
 
    }
 
-   function handleDeletedTaskUpdate(id: number, condition: "delete" | "restore") {
-      console.log("🚀 ~ handleDeletedTaskUpdate ~ id:", id)
-      console.log("🚀 ~ handleDeletedTaskUpdate ~ id:", condition)
+   const handleDeletedTaskUpdate = useCallback(async (id: string, condition: "delete" | "restore"): Promise<boolean> => {
+      // no ID → nothing to do
+      if (!id) return false;
 
-   }
+      // pick the correct backend call
+      const apiFn =
+         condition === "delete" ? deletePermanently : restoreDeletedTask;
+
+      const result = await apiFn(id, activeDashboardBtn, activeDashboardRoute);
+      console.log("🚀 ~ handleDeletedTaskUpdate ~ result:", result)
+      if (!result) return false;
+
+      // in either case, remove the task from *this* list
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+
+      return true;
+   },
+      [activeDashboardBtn, activeDashboardRoute]
+   );
+
+
 
    useEffect(() => {
       async function fetchDeletedTaskDetails() {
          const dashboardBtn = activeDashboardBtn;
          const dashboardRoute = activeDashboardRoute;
          try {
-            const queryResult = await deletedTaskDetails( dashboardBtn, dashboardRoute);
+            const queryResult = await deletedTaskDetails(dashboardBtn, dashboardRoute);
             if (!queryResult) {
-               console.log("No saved task found");
                setTaskIsLoading(false)
                setTasks([]);
                return;
@@ -119,14 +134,13 @@ export default function DeletedTask() {
                setTaskIsLoading(false)
                setTasks([queryResult]);
             }
-         } catch (error) {
-            console.error("Error fetching tasks:", error);
+         } catch {
             setTasks([]);
          }
       }
 
       fetchDeletedTaskDetails();
-   }, [ activeDashboardBtn, activeDashboardRoute]);
+   }, [activeDashboardBtn, activeDashboardRoute]);
 
 
 

@@ -31,7 +31,6 @@ export default async function insertTask(
       const table = `${dashboardBtn}_task`;
 
       if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
-         console.error("insertTask: Invalid table or column");
          return false;
       }
 
@@ -39,7 +38,6 @@ export default async function insertTask(
       const payload: Record<string, any> = {
          task_data: taskDetails,
       };
-      console.log("🚀 ~ payload:", payload)
 
       if (userDeadline) {
          let col: "time_deadline" | "date_deadline" = "date_deadline";
@@ -60,14 +58,11 @@ export default async function insertTask(
       }
 
       const { error } = await supabase.from(table).insert(payload);
-      console.log("🚀 ~ error:", error)
       if (error) {
-         console.error("insertTask supabase error:", error);
          return false;
       }
       return true;
-   } catch (err) {
-      console.error("insertTask caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -85,23 +80,19 @@ export async function updateTaskInformation(
    try {
       const table = `${dashboardBtn}_task`;
       if (!ALLOWED_TABLES.includes(table)) {
-         console.error("updateTaskInformation: Invalid table");
          return false;
       }
 
-      const { data, error } = await supabase
+      const { error } = await supabase
          .from(table)
          .update({ task_data: taskDetails })
          .match({ id: updatingIndex });
-      console.log("🚀 ~ data:", data)
 
       if (error) {
-         console.error("updateTaskInformation supabase error:", error);
          return false;
       }
       return true;
-   } catch (err) {
-      console.error("updateTaskInformation caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -114,7 +105,6 @@ export async function showSavedTaskSummaryView(
    try {
       const table = `${dashboardBtn}_task`;
       if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
-         console.error("showSavedTaskSummaryView: Invalid table or column");
          return false;
       }
 
@@ -159,8 +149,7 @@ export async function showSavedTaskSummaryView(
       const { data, error } = await query;
       if (error) throw error;
       return data;
-   } catch (err) {
-      console.error("showSavedTaskSummaryView caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -176,7 +165,6 @@ export async function showSavedTaskDetailView(
 
       const table = `${dashboardBtn}_task`;
       if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
-         console.error("showSavedTaskDetailView: Invalid inputs");
          return null;
       }
 
@@ -206,7 +194,6 @@ export async function showSavedTaskDetailView(
          .eq(dashboardRoute, true)     // ◀️ e.g. “high_priority = true”
          .single();
 
-      console.log("🚀 ~ data:", data);
 
       if (error) return null;
       const dataFormat = {
@@ -215,8 +202,7 @@ export async function showSavedTaskDetailView(
          status: JSON.parse(data.status),
       };
       return dataFormat;
-   } catch (err) {
-      console.error("showSavedTaskDetailView caught error:", err);
+   } catch {
       return null;
    }
 }
@@ -224,46 +210,43 @@ export async function showSavedTaskDetailView(
 
 // Assume ALLOWED_TABLES = ["personal_task","work_task", …]
 export async function getUserSearchResult(
-  query: string,
-  dashboardBtn: string
+   query: string,
+   dashboardBtn: string
 ): Promise<{ id: string; title: string }[] | null> {
-  const supabase = await createClient();
+   const supabase = await createClient();
 
-  // 1) Refuse empty or whitespace‐only search
-  if (!query.trim()) {
-    return [];
-  }
+   // 1) Refuse empty or whitespace‐only search
+   if (!query.trim()) {
+      return [];
+   }
 
-  // 2) Build and validate the table name
-  const table = `${dashboardBtn}_task`;
-  if (!ALLOWED_TABLES.includes(table)) {
-    console.error("getUserSearchResult: Invalid table →", table);
-    return null;
-  }
-
-  // 3) Escape any % or , that might break the PostgREST `.or(...)` syntax
-  const safeQuery = query.replace(/%/g, "\\%").replace(/,/g, "\\,");
-
-  try {
-    const { data, error } = await supabase
-      .from(table)
-      .select("id, task_data->>title")
-      .or(
-        `task_data->>title.ilike.%${safeQuery}%,` +
-        `task_data->>subtasks.ilike.%${safeQuery}%`
-      );
-
-    if (error) {
-      console.error("getUserSearchResult supabase error:", error);
+   // 2) Build and validate the table name
+   const table = `${dashboardBtn}_task`;
+   if (!ALLOWED_TABLES.includes(table)) {
       return null;
-    }
+   }
 
-    // `data` is now an array of `{ id: string; title: string }`
-    return data;
-  } catch (err) {
-    console.error("getUserSearchResult caught exception:", err);
-    return null;
-  }
+   // 3) Escape any % or , that might break the PostgREST `.or(...)` syntax
+   const safeQuery = query.replace(/%/g, "\\%").replace(/,/g, "\\,");
+
+   try {
+      const { data, error } = await supabase
+         .from(table)
+         .select("id, task_data->>title")
+         .or(
+            `task_data->>title.ilike.%${safeQuery}%,` +
+            `task_data->>subtasks.ilike.%${safeQuery}%`
+         );
+
+      if (error) {
+         return null;
+      }
+
+      // `data` is now an array of `{ id: string; title: string }`
+      return data;
+   } catch {
+      return null;
+   }
 }
 
 
@@ -275,7 +258,6 @@ export async function getTaskDetailsForPreview(
    try {
       const table = `${dashboardBtn}_task`;
       if (!ALLOWED_TABLES.includes(table)) {
-         console.error("getTaskDetailsForPreview: Invalid table");
          return false;
       }
 
@@ -293,8 +275,7 @@ export async function getTaskDetailsForPreview(
          status: JSON.parse(status),
       };
       return dataFormat;
-   } catch (err) {
-      console.error("getTaskDetailsForPreview caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -304,14 +285,9 @@ export async function taskPositionRequirement(
    dashboardBtn: string,
    dashboardRoute: string
 ): Promise<any[] | false> {
-   console.log("🚀 ~ taskPositionRequirement:", taskPositionRequirement)
-   console.log("🚀 ~ taskPositionRequirement function has started ===> :",)
-   console.log("🚀 ~ dashboardBtn:", dashboardBtn)
-   console.log("🚀 ~ dashboardRoute:", dashboardRoute)
    const supabase = await createClient();
    try {
       const table = `${dashboardBtn}`;
-      console.log("🚀 ~ table:", table)
 
       // Base query: select id and created_at, but sort by id
       let query = supabase
@@ -349,7 +325,6 @@ export async function taskPositionRequirement(
             .order("task_id", { ascending: true });
 
          if (statusError) {
-            console.error("Error fetching repeated_task_status:", statusError);
             return false;
          }
 
@@ -364,7 +339,6 @@ export async function taskPositionRequirement(
             .order("id", { ascending: true });
 
          if (rowsError) {
-            console.error("Error fetching tasks by IDs:", rowsError);
             return false;
          }
          return rows;
@@ -373,12 +347,10 @@ export async function taskPositionRequirement(
       // Execute standard query
       const { data, error } = await query;
       if (error) {
-         console.error("Error executing query:", error);
          return false;
       }
       return data ?? [];
-   } catch (err) {
-      console.error("taskPositionRequirement caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -396,15 +368,12 @@ export async function TaskAttributes(
    try {
       const table = `${dashboardBtn}_task`;
       if (!ALLOWED_TABLES.concat("repeated_task_status").includes(table)) {
-         console.error("TaskAttributes: invalid table");
          return false;
       }
       if (!["missed", "completed", "deleted"].includes(condition)) {
-         console.error("TaskAttributes: invalid condition");
          return false;
       }
       if (!ALLOWED_ROUTES.includes(dashboardRoute)) {
-         console.error("TaskAttributes: invalid route");
          return false;
       }
 
@@ -415,7 +384,6 @@ export async function TaskAttributes(
          .match({ id: updatingIndex, [dashboardRoute]: true })
          .single();
       if (e1 || !existing) {
-         console.warn("TaskAttributes: no matching task");
          return false;
       }
 
@@ -444,8 +412,7 @@ export async function TaskAttributes(
       if (e4) throw e4;
 
       return true;
-   } catch (err) {
-      console.error("TaskAttributes caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -459,7 +426,6 @@ export async function deletedTaskDetails(
    try {
       const table = `${dashboardBtn}_task`;
       if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
-         console.error("deletedTaskDetails: invalid table or route");
          return false;
       }
 
@@ -478,8 +444,7 @@ export async function deletedTaskDetails(
       const { data, error } = await query;
       if (error) throw error;
       return data!;
-   } catch (err) {
-      console.error("deletedTaskDetails caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -517,8 +482,7 @@ export async function fetchUserNotification(
       }
 
       return { notification_details };
-   } catch (err) {
-      console.error("fetchUserNotification caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -534,8 +498,7 @@ export async function storeUserNotification(
          .insert([{ notification_data: userNotificationData }]);
       if (error) throw error;
       return true;
-   } catch (err) {
-      console.error("storeUserNotification caught error:", err);
+   } catch {
       return false;
    }
 }
@@ -563,8 +526,64 @@ export async function getUserNotificationCount(
          total += count ?? 0;
       }
       return total;
-   } catch (err) {
-      console.error("getUserNotificationCount caught error:", err);
+   } catch {
+      return false;
+   }
+}
+
+
+// --------------- restoreDeletedTask ---------------
+export async function restoreDeletedTask(
+   taskId: string,
+   dashboardBtn: string,
+   dashboardRoute: string,
+): Promise<boolean> {
+   const table = `${dashboardBtn}_task`;
+
+   if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
+      return false;
+   }
+
+   const supabase = await createClient();
+
+   try {
+      const { error } = await supabase
+         .from(table)
+         .update({ deleted: false })
+         .eq("id", taskId)
+         .eq("dashboard_route", dashboardRoute); // include dashboard_route
+
+      if (error) throw error;
+      return true;
+   } catch {
+      return false;
+   }
+}
+
+// --------------- deletePermanently ---------------
+export async function deletePermanently(
+   taskId: string,
+   dashboardBtn: string,
+   dashboardRoute: string,
+): Promise<boolean> {
+   const table = `${dashboardBtn}_task`;
+
+   if (!ALLOWED_TABLES.includes(table) || !ALLOWED_ROUTES.includes(dashboardRoute)) {
+      return false;
+   }
+
+   const supabase = await createClient();
+
+   try {
+      const { error } = await supabase
+         .from(table)
+         .delete()
+         .eq("id", taskId)
+         .eq("dashboard_route", dashboardRoute); // include dashboard_route
+
+      if (error) throw error;
+      return true;
+   } catch {
       return false;
    }
 }

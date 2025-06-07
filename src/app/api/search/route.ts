@@ -4,10 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { userId, query, userSearchBarDashboardBtn } = await request.json();
-    console.log("🚀 ~ POST ~ userSearchBarDashboardBtn:", userSearchBarDashboardBtn)
-    console.log("🚀 ~ POST ~ query:", query)
-    console.log("🚀 ~ POST ~ userId:", userId)
+    const { query, userSearchBarDashboardBtn } = await request.json();
     const queryResult = await getUserSearchResult( query, userSearchBarDashboardBtn);
 
     if (Array.isArray(queryResult)) {
@@ -21,7 +18,6 @@ export async function POST(request: Request) {
     }
 
   } catch (error: unknown) {
-    console.error("Error fetching result from search bar query:", error);
     return NextResponse.json({ success: false, error: error });
   }
 }
