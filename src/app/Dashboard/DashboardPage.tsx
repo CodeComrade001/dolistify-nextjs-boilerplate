@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect, useCallback, JSX } from 'react';
 import Image from 'next/image';
@@ -32,8 +31,6 @@ export default function DashboardPage({
   const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "completed" | "missed" | "repeated">("personal");
   // const [showNotification, setShowNotification] = useState<boolean>(false)
   const [activeDashboardBtnRoute, setActiveDashboardBtnRoute] = useState("high_priority");
-  console.log("🚀 ~ activeDashboardBtn:", activeDashboardBtn)
-  console.log("🚀 ~ activeDashboardBtnRoute:", activeDashboardBtnRoute)
   const router = useRouter()
   // const [notificationCount, setNotificationCount] = useState<number>(0)
   const [results, setResults] = useState<[{ id: string, title: string }]>([{ id: "", title: "" }]);
@@ -44,7 +41,6 @@ export default function DashboardPage({
   const [userSearchQuery, setUserSearchQuery] = useState("")
   const [searchDisplay, setSearchDisplay] = useState(false)
   const handleClick = (dashboardBtn: string, dashboardRoute: string) => {
-    console.log(`Dashboard page: ${dashboardBtn}, Dashboard route: ${dashboardRoute}`);
     userTaskQueryPath(dashboardBtn, dashboardRoute);
   };
 
@@ -54,10 +50,6 @@ export default function DashboardPage({
 
   function ThemeChange() {
     const newTheme = theme === 'light' ? 'dark' : 'light';
-    const messages = ["Hello there how!", "Welcome how aboard.", "You how got this!", "Keep how pushing forward.", "Stay how positive.", "Never how give up.", "Embrace how the challenge.", "Dream how big.", "Believe how in yourself.", "Today how is your day!"
-    ];
-    const randomMessage = messages[Math.floor(Math.random() * 11)]
-    console.log("🚀 ~ ThemeChange ~ randomMessage:", randomMessage)
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
   }
@@ -99,8 +91,6 @@ export default function DashboardPage({
   }
 
   const handleSearch = useCallback(async (query: string, userSearchBarDashboardBtn: string) => {
-    console.log("🚀 ~ handleSearch ~ query:", query)
-    console.log("🚀 ~ handleSearch ~ userSearchBarDashboardBtn:", userSearchBarDashboardBtn)
     if (!query) {
       return;
     }
@@ -114,15 +104,12 @@ export default function DashboardPage({
         body: JSON.stringify({  userSearchBarDashboardBtn })
       });
       const searchResult = await response.json();
-      console.log("🚀 ~ handleSearch ~ searchResult:", searchResult)
       if (searchResult.success) {
-        console.log("setting result now");
         setQuery("");
         setResults(searchResult.data);
         setSearchDisplay(true)
       }
-    } catch (error) {
-      console.error("Search error:", error);
+    } catch  {
       setQuery("");
     }
   }, [])
@@ -166,16 +153,15 @@ export default function DashboardPage({
         headers: { "Content-Type": "application/json" },
         credentials: "include"
       });
-      console.log("🚀 ~ userLogOut ~ response:", response)
       const data = await response.json();
       if (data.success) {
         router.push("/")
       } else {
-        console.log("Error while deleting session and cookies in auth folder")
+        return
       }
 
-    } catch (error: unknown) {
-      console.log("Error deleting  session and token", error)
+    } catch {
+      return
     }
   }
 
@@ -590,9 +576,7 @@ export default function DashboardPage({
                   onClick={() => {
                     setActiveDashboardBtn("personal");
                     const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0];
-                    console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
                     const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
-                    console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                     setActiveDashboardBtnRoute(defaultRouteOption)
 
                     handleClick("personal", activeDefaultRoute)
@@ -626,9 +610,7 @@ export default function DashboardPage({
                   onClick={() => {
                     setActiveDashboardBtn("work")
                     const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0]
-                    console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
                     const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
-                    console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                     setActiveDashboardBtnRoute(defaultRouteOption)
                     handleClick("work", activeDefaultRoute);
                   }}
@@ -665,9 +647,7 @@ export default function DashboardPage({
                   onClick={() => {
                     setActiveDashboardBtn("time_bound")
                     const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0]
-                    console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
                     const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
-                    console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                     setActiveDashboardBtnRoute(defaultRouteOption)
                     handleClick("time_bound", activeDefaultRoute);
                   }}
@@ -698,9 +678,7 @@ export default function DashboardPage({
                   onClick={() => {
                     setActiveDashboardBtn("completed")
                     const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0]
-                    console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
                     const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
-                    console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                     setActiveDashboardBtnRoute(defaultRouteOption)
                     handleClick("completed", activeDefaultRoute);
                   }}
@@ -732,9 +710,7 @@ export default function DashboardPage({
                   onClick={() => {
                     setActiveDashboardBtn("missed")
                     const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0];
-                    console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
                     const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
-                    console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                     setActiveDashboardBtnRoute(defaultRouteOption)
                     handleClick("missed", activeDefaultRoute);
                   }}
@@ -771,9 +747,7 @@ export default function DashboardPage({
                   onClick={() => {
                     setActiveDashboardBtn("repeated")
                     const activeDefaultRoute = dashboardRouteOptionsQuery.activeRouteOptions[0];
-                    console.log("🚀 ~ activeDefaultRoute:", activeDefaultRoute)
                     const defaultRouteOption = dashboardRouteOptionsQuery.routeOptions[0];
-                    console.log("🚀 ~ defaultRouteOption:", defaultRouteOption)
                     setActiveDashboardBtnRoute(defaultRouteOption)
                     handleClick("repeated", activeDefaultRoute);
                   }}

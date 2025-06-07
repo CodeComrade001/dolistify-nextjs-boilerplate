@@ -40,8 +40,6 @@ export default function HomePage() {
   } | null>(null);
 
   function handleAccessBtn(direction: string, UserAccessType: string) {
-    console.log("🚀 ~ handleAccessBtn ~ UserAccessType:", UserAccessType)
-    console.log("🚀 ~ handleAccessBtn ~ direction:", direction)
     setAccessType(UserAccessType as "Sign in" | "Sign up")
     setAnimationMovement(direction)
   }
@@ -72,7 +70,6 @@ export default function HomePage() {
     const { userName, email, password, password0 } = userSignUpDetails;
 
     if (password !== password0) {
-      console.log("Passwords do not match");
       return;
     }
 
@@ -95,17 +92,13 @@ export default function HomePage() {
       if (data.success) {
         router.push("/Dashboard");
       } else {
-        console.error("Signup failed:", data.error);
+        return
       }
     } catch (error) {
       // If the data is invalid, Zod will throw an error which you can catch.
       if (error instanceof z.ZodError) {
         setFormErrors(error.flatten().fieldErrors);
       }
-      
-      
-      console.log("Validation error:", error);
-      // Here you can set error messages into state to show on the form.
     }
   }
 
@@ -113,8 +106,6 @@ export default function HomePage() {
   async function handleSignInBtn() {
     try {
       const { userName, password } = userSignInDetails;
-      console.log("🚀 ~ handleSignInBtn ~ password:", password)
-      console.log("🚀 ~ handleSignInBtn ~ userName:", userName)
       if (userName !== "" && password !== "") {
 
         const response = await fetch("/api/auth/signin", {
@@ -125,16 +116,15 @@ export default function HomePage() {
           body: JSON.stringify({ userName, password }),
         });
         const data = await response.json();
-        console.log("🚀 ~ handleSignUpBtn ~ data:", data)
         if (data.success) {
           router.push("/Dashboard");
         } else {
-          console.error("SignIn failed:", data.error);
+          return
         }
       }
       // You could similarly implement sign-in logic here
-    } catch (error: unknown) {
-      console.log("Error creating account for user", error);
+    } catch {
+      return
     }
   }
 
@@ -162,150 +152,150 @@ export default function HomePage() {
               </button>
             </div>
             {
-              accessType === "Sign up" 
-              ? (
-                <form className={LoginStyles.login} >
-                  <div className={LoginStyles.Welcome_message}>
-                    <h1>Sign up To Dolistify</h1>
-                  </div>
-                  <div className={LoginStyles.login__field}>
-                    <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
-                    <input
-                      type="text"
-                      name={userSignUpDetails.userName}
-                      className={LoginStyles.login__input}
-                      placeholder="User name"
-                      onChange={(e) => handleSignUpInputChange(e, "userName")}
-                    />
-                  </div>
-                  {formErrors?.name &&
-                    formErrors?.name.map((err, idx) => (
-                      <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
-                    ))}
-                  <div className={LoginStyles.login__field}>
-                    <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
-                    <input
-                      type="text"
-                      name={userSignUpDetails.email}
-                      className={LoginStyles.login__input}
-                      placeholder="Email"
-                      onChange={(e) => handleSignUpInputChange(e, "email")}
-                    />
-                  </div>
-                  {formErrors?.email  &&
-                    formErrors?.email.map((err, idx) => (
-                      <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
-                    ))}
-                  <div className={LoginStyles.login__field}>
-                    <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
-                    <input
-                      type="password"
-                      name={userSignUpDetails.password}
-                      className={LoginStyles.login__input}
-                      placeholder="Password"
-                      onChange={(e) => handleSignUpInputChange(e, "password")}
-                    />
-                  </div>
-                  {formErrors?.password && (
-                    <div className={LoginStyles.error_list}>
-                      <p>Password must:</p>
-                      <ul>
-                        {formErrors?.password.map((error, idx) => (
-                          <li key={idx} className={LoginStyles.error_item}>
-                            {error}
-                          </li>
-                        ))}
-                      </ul>
+              accessType === "Sign up"
+                ? (
+                  <form className={LoginStyles.login} >
+                    <div className={LoginStyles.Welcome_message}>
+                      <h1>Sign up To Dolistify</h1>
                     </div>
-                  )}
-                  <div className={LoginStyles.login__field}>
-                    <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
-                    <input
-                      type="password"
-                      name={userSignUpDetails.password0}
-                      className={LoginStyles.login__input}
-                      placeholder="Confirm Password"
-                      onChange={(e) => handleSignUpInputChange(e, "password0")}
-                    />
-                  </div>
-                  <button
-                    className={`${LoginStyles.button} ${accessType === "Sign up" ? LoginStyles.sign_up_login_submit : LoginStyles.login__submit}`}
-                    onClick={(event) => {
-                      event.preventDefault();  // Prevents form from submitting and adding query parameters
-                      handleSignUpBtn();
-                    }}
-                    type="submit"
-                  >
-                    <span className={LoginStyles.button__text}>Create Account</span>
-                    <i className={`${LoginStyles.button__icon} fas fa-chevron-right`}></i>
-                  </button>
-                  <div className={`${accessType === "Sign up" ? LoginStyles.sign_up_social_login : LoginStyles.social_login}`}>
-                    <h3>Sign up via</h3>
-                    <div className={LoginStyles.social_icons}>
-                      <button
-                        title="sign in with google"
-                        className={`${LoginStyles.social_login__icon} fab fa-instagram`}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-google" viewBox="0 0 16 16">
-                          <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z" />
-                        </svg>
-                      </button>
+                    <div className={LoginStyles.login__field}>
+                      <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
+                      <input
+                        type="text"
+                        name={userSignUpDetails.userName}
+                        className={LoginStyles.login__input}
+                        placeholder="User name"
+                        onChange={(e) => handleSignUpInputChange(e, "userName")}
+                      />
                     </div>
-                  </div>
-                </form>
-              ) : (
-                <form className={LoginStyles.login}>
-                  <div className={LoginStyles.Welcome_message}>
-                    <h1>Welcome To Dolistify</h1>
-                  </div>
-                  <div className={LoginStyles.login__field}>
-                    <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
-                    <input
-                      type="text"
-                      name={userSignInDetails.userName}
-                      className={LoginStyles.login__input}
-                      placeholder="User name / Email"
-                      onChange={(e) => handleSignInInputChange(e, "userName")}
-                    />
-                  </div>
-                  <div className={LoginStyles.login__field}>
-                    <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
-                    <input
-                      type="password"
-                      name={userSignInDetails.password}
-                      className={LoginStyles.login__input}
-                      placeholder="Password"
-                      onChange={(e) => handleSignInInputChange(e, "password")}
-                    />
-                  </div>
-                  <button
-                    className={`${LoginStyles.button} ${LoginStyles.login__submit}`}
-                    onClick={(event) => {
-                      event.preventDefault();  // Prevents form from submitting and adding query parameters
-                      handleSignInBtn();
-                    }}
-                  >
-                    <span className={LoginStyles.button__text}>Log In Now</span>
-                    <i className={`${LoginStyles.button__icon} fas fa-chevron-right`}></i>
-                  </button>
-                  <div className={LoginStyles.social_login}>
-                    <h3>log in via</h3>
-                    <div
-                      className={LoginStyles.social_icons}
+                    {formErrors?.name &&
+                      formErrors?.name.map((err, idx) => (
+                        <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
+                      ))}
+                    <div className={LoginStyles.login__field}>
+                      <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
+                      <input
+                        type="text"
+                        name={userSignUpDetails.email}
+                        className={LoginStyles.login__input}
+                        placeholder="Email"
+                        onChange={(e) => handleSignUpInputChange(e, "email")}
+                      />
+                    </div>
+                    {formErrors?.email &&
+                      formErrors?.email.map((err, idx) => (
+                        <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
+                      ))}
+                    <div className={LoginStyles.login__field}>
+                      <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
+                      <input
+                        type="password"
+                        name={userSignUpDetails.password}
+                        className={LoginStyles.login__input}
+                        placeholder="Password"
+                        onChange={(e) => handleSignUpInputChange(e, "password")}
+                      />
+                    </div>
+                    {formErrors?.password && (
+                      <div className={LoginStyles.error_list}>
+                        <p>Password must:</p>
+                        <ul>
+                          {formErrors?.password.map((error, idx) => (
+                            <li key={idx} className={LoginStyles.error_item}>
+                              {error}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className={LoginStyles.login__field}>
+                      <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
+                      <input
+                        type="password"
+                        name={userSignUpDetails.password0}
+                        className={LoginStyles.login__input}
+                        placeholder="Confirm Password"
+                        onChange={(e) => handleSignUpInputChange(e, "password0")}
+                      />
+                    </div>
+                    <button
+                      className={`${LoginStyles.button} ${accessType === "Sign up" ? LoginStyles.sign_up_login_submit : LoginStyles.login__submit}`}
+                      onClick={(event) => {
+                        event.preventDefault();  // Prevents form from submitting and adding query parameters
+                        handleSignUpBtn();
+                      }}
+                      type="submit"
                     >
-                      <button
-                        title="sign in with google"
-                      >
-                        <Link href="#" className={`${LoginStyles.social_login__icon} fab fa-instagram`}>
+                      <span className={LoginStyles.button__text}>Create Account</span>
+                      <i className={`${LoginStyles.button__icon} fas fa-chevron-right`}></i>
+                    </button>
+                    <div className={`${accessType === "Sign up" ? LoginStyles.sign_up_social_login : LoginStyles.social_login}`}>
+                      <h3>Sign up via</h3>
+                      <div className={LoginStyles.social_icons}>
+                        <button
+                          title="sign in with google"
+                          className={`${LoginStyles.social_login__icon} fab fa-instagram`}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-google" viewBox="0 0 16 16">
                             <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z" />
                           </svg>
-                        </Link>
-                      </button>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              )
+                  </form>
+                ) : (
+                  <form className={LoginStyles.login}>
+                    <div className={LoginStyles.Welcome_message}>
+                      <h1>Welcome To Dolistify</h1>
+                    </div>
+                    <div className={LoginStyles.login__field}>
+                      <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
+                      <input
+                        type="text"
+                        name={userSignInDetails.userName}
+                        className={LoginStyles.login__input}
+                        placeholder="User name / Email"
+                        onChange={(e) => handleSignInInputChange(e, "userName")}
+                      />
+                    </div>
+                    <div className={LoginStyles.login__field}>
+                      <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
+                      <input
+                        type="password"
+                        name={userSignInDetails.password}
+                        className={LoginStyles.login__input}
+                        placeholder="Password"
+                        onChange={(e) => handleSignInInputChange(e, "password")}
+                      />
+                    </div>
+                    <button
+                      className={`${LoginStyles.button} ${LoginStyles.login__submit}`}
+                      onClick={(event) => {
+                        event.preventDefault();  // Prevents form from submitting and adding query parameters
+                        handleSignInBtn();
+                      }}
+                    >
+                      <span className={LoginStyles.button__text}>Log In Now</span>
+                      <i className={`${LoginStyles.button__icon} fas fa-chevron-right`}></i>
+                    </button>
+                    <div className={LoginStyles.social_login}>
+                      <h3>log in via</h3>
+                      <div
+                        className={LoginStyles.social_icons}
+                      >
+                        <button
+                          title="sign in with google"
+                        >
+                          <Link href="#" className={`${LoginStyles.social_login__icon} fab fa-instagram`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-google" viewBox="0 0 16 16">
+                              <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z" />
+                            </svg>
+                          </Link>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )
             }
           </div>
           <div className={LoginStyles.screen__background}>

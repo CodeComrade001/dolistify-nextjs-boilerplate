@@ -17,7 +17,6 @@ type NotifierProviderProps = {
 
 export function NotifierProvider({ children }: NotifierProviderProps) {
   const [message, setMessage] = useState<string>("");
-  console.log("🚀 ~ NotifierProvider ~ message:", message)
 
   return (
     <NotifierContext.Provider value={{ message, setMessage }}>

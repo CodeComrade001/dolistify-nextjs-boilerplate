@@ -14,7 +14,6 @@ interface PieChartProps {
 }
 
 export default function PieChart({ weeklyData }: PieChartProps) {
-   console.log("🚀 ~ PieChart ~ weeklyData:", weeklyData);
    // Parse the percentage strings into numbers.
    const completed = parseFloat(weeklyData.completed); // e.g., 17
    const missed = parseFloat(weeklyData.missed);         // e.g., 17
@@ -24,7 +23,6 @@ export default function PieChart({ weeklyData }: PieChartProps) {
 
    // Sum of all segments. (This might not equal 100 exactly.)
    const total = completed + missed + active + deleted;
-   console.log("🚀 ~ PieChart ~ total:", total)
 
    // If total is zero, set a uniform gradient.
    let gradient = "";
@@ -33,20 +31,14 @@ export default function PieChart({ weeklyData }: PieChartProps) {
    } else {
       // Normalize the percentages so they add to 100.
       const normCompleted = (completed / total) * 100;
-      console.log("🚀 ~ PieChart ~ normCompleted:", normCompleted)
       const normMissed = (missed / total) * 100;
-      console.log("🚀 ~ PieChart ~ normMissed:", normMissed)
       const normActive = (active / total) * 100;
-      console.log("🚀 ~ PieChart ~ normActive:", normActive)
       // const normDeleted = (deleted / total) * 100;
 
       // Calculate cumulative stops.
       const completedStop = normCompleted;
-      console.log("🚀 ~ PieChart ~ completedStop:", completedStop)
       const missedStop = completedStop + normMissed;
-      console.log("🚀 ~ PieChart ~ missedStop:", missedStop)
       const activeStop = missedStop + normActive;
-      console.log("🚀 ~ PieChart ~ activeStop:", activeStop)
       // deletedStop should be 100 after normalization.
       // const deletedStop = activeStop + normDeleted;
 
@@ -64,7 +56,6 @@ export default function PieChart({ weeklyData }: PieChartProps) {
     )`;
    }
 
-   console.log("🚀 ~ PieChart ~ Gradient:", gradient);
 
    return (
       <div className={pieChartStyles.pieChart_view} style={{ backgroundImage: gradient }}>

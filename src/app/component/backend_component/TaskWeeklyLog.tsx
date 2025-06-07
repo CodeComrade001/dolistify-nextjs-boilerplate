@@ -30,7 +30,6 @@ interface QueryRow {
 
 // Helper to format a Date to 'YYYY-MM-DD'
 const formatDate = (d: Date) => d.toISOString().slice(0, 10);
-console.log("🚀 ~ formatDate:", formatDate)
 
 /**
  * Fetches daily and weekly counts for a given user/dashboard,
@@ -40,7 +39,6 @@ export async function getWeeklyLog(
   activeDashboardBtn: string
 ): Promise<WeeklyLog | null> {
 
-  console.log("🚀 ~ activeDashboardBtn:", activeDashboardBtn)
   const table = activeDashboardBtn == "" ? "personal_task" : `${activeDashboardBtn}_task`;
   const allowed = [
     'personal_task',
@@ -139,8 +137,7 @@ export async function getWeeklyLog(
       });
 
     return { daily, weekly: weeklyTotals };
-  } catch (error) {
-    console.log("🚀 ~ error:", error)
+  } catch  {
     return null
   }
 }

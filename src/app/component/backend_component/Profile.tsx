@@ -18,13 +18,11 @@ export default async function GetUserDetails() {
       console.error("GetUserDetails supabase error:", error);
       return false;
     }
-    console.log("🚀 ~ GetUserDetails ~ data:", data)
 
 
     // Map to your original property names
     return data;
-  } catch (err) {
-    console.error("GetUserDetails caught error:", err);
+  } catch {
     return false;
   }
 }

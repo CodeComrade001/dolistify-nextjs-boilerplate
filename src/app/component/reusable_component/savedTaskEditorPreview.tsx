@@ -50,10 +50,10 @@ export default function ShowSavedTaskPreview({
                }
                setSavedTask(result); // Save the processed task
             } else {
-               console.log("Invalid taskId provided. Skipping query.");
+               return ;
             }
-         } catch (error: unknown) {
-            console.error("Error Fetching Task:", error);
+         } catch  {
+            return ;
          }
       }
 

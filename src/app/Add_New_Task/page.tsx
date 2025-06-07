@@ -31,7 +31,6 @@ export default function AddNewTask() {
     subtasks: [{ id: 1, description: "" }],
     status: [{ id: 1, completed: null, missed: null }],
   })
-  console.log("🚀 ~ AddNewTask ~ userDeadline:", userDeadline)
   const router = useRouter();
   const [theme, setTheme] = useState('light');
 
@@ -99,9 +98,8 @@ export default function AddNewTask() {
   }
 
   const addExtraInputColumn = (e: React.KeyboardEvent, index: number) => {
-    console.log("🚀 ~ addExtraInputColumn ~ e:", e.key)
     if (index < 0 || index >= taskDetails.subtasks.length) {
-      console.log("Invalid index for completed or missed.");
+      return 
     }
     if (e.key === "Enter") {
       if (taskDetails.subtasks[index].description.trim() === "") return;
@@ -165,8 +163,7 @@ export default function AddNewTask() {
 
   function handleDeadlineInput(event: React.ChangeEvent<HTMLInputElement>) {
     const userDeadline: string | number = event.target.value;
-    const userDate_time_deadline = setUserDeadline(userDeadline);
-    console.log("🚀 ~ handleDeadlineInput ~ userDate_time_deadline:", userDate_time_deadline)
+    setUserDeadline(userDeadline);
   }
 
   const handleOptionClick = (option: "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task") => {
@@ -234,25 +231,8 @@ export default function AddNewTask() {
 
     // storing if no error occurs
     const sentDashboardBtn = activeDashboardBtn;
-    console.log("🚀 ~ insertIntoDB ~ sentDashboardBtn:", sentDashboardBtn)
     const sentDashboardRoute = activeDashboardRoute;
-    console.log("🚀 ~ insertIntoDB ~ sentDashboardRoute:", sentDashboardRoute)
-    console.log("🚀 ~ insertIntoDB ~ dashboard:", dashboard)
-    console.log("🚀 ~ insertIntoDB ~ dashboardRoute:", dashboardRoute)
 
-    const taskDetailsJSON = {
-      title: taskDetails.title,
-      subtasks: taskDetails.subtasks.map((row, index) => ({
-        id: index + 1,
-        description: row.description,
-      })),
-      status: taskDetails.status.map((status, index) => ({
-        id: index + 1,
-        completed: status.completed,
-        missed: status.missed,
-      }))
-    };
-    console.log("🚀 ~ insertIntoDB ~ taskDetailsJSON:", taskDetailsJSON)
     try {
       if (isDeadlineValid(userDeadline)) {
         const success = await insertTask(sentDashboardBtn, sentDashboardRoute, taskDetails, userDeadline);
@@ -270,8 +250,8 @@ export default function AddNewTask() {
           router.push("/Dashboard");
         }
       }
-    } catch (error: unknown) {
-      console.log("🚀 ~ insertIntoDB ~ error:", error)
+    } catch  {
+      return
     }
   }
   const dashboardOptionsQuery = dashboardRouteOptions(dashboardBtn as "Personal Task" | "Work Task" | "Time-bound Task" | "Repeated Task");
