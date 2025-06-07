@@ -76,7 +76,6 @@ export default function HomePage() {
     try {
       // Validate the form data using your Zod schema.
       SignupFormSchema.parse({
-        
         email: email,
         password: password,
       });
