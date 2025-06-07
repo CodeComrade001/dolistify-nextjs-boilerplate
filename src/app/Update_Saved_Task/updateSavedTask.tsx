@@ -22,7 +22,9 @@ export default function EditSavedTask({
   const [editedTask, setEditedTask] = useState<savedTaskDataType>();
   const [savedTaskStatus, setSavedTaskStatus] = useState<string>("Update");
   const [deletedSubtasks, setDeletedSubtasks] = useState<number>(0)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [missedTask, setMissedTask] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [completedTask, setCompletedTask] = useState("");
   const [theme, setTheme] = useState('light');
   const router = useRouter();

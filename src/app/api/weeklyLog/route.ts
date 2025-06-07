@@ -150,11 +150,10 @@ export async function POST(request: Request) {
         dailyNumFormat: dailyNum,
       },
     });
-  } catch (err: unknown) {
-    console.error("weekly-log POST error:", err);
+  } catch  {
     return NextResponse.json({
       success: false,
-      error: String(err),
+      error: "server error",
     });
   }
 }

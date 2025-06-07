@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     revalidatePath('/', 'layout')
     // On success, send user to Dashboard
     return NextResponse.json({ success: true });
-  } catch (error: unknown) {
+  } catch  {
      return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
   }
 }
