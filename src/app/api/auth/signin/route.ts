@@ -14,15 +14,13 @@ export async function POST(request: Request) {
     }
     const { error } = await supabase.auth.signInWithPassword(data)
     if (error) {
-      console.error("Signup error:", error);
-      // Redirect back to home on error
       return NextResponse.redirect(new URL('/', request.url), 307);
     }
     revalidatePath('/', 'layout')
     // On success, send user to Dashboard
     return NextResponse.json({ success: true });
-  } catch  {
-     return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
   }
 }
 
