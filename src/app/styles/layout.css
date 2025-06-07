@@ -221,13 +221,23 @@
 
 /*GENERAL CSS STYLES--start */
 .dashboard-body-blackTheme {
-  font-family: "Roboto", sans-serif;
-  height: 100%;
+  height: 100lvh;
+  width: 100lvw;
+  display: grid;
+  grid-template-rows: 100%;
+  overflow: hidden;
+  grid-template-columns: 20% 80%;
+  gap: 5px;
 }
 
 .dashboard-body-whiteTheme {
-  font-family: "Roboto", sans-serif;
-  height: 100%;
+  height: 100lvh;
+  width: 100lvw;
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 20% 80%;
+  gap: 5px;
+  overflow: hidden;
 }
 
 .dashboard-body-whiteTheme > .full-body button {
@@ -269,10 +279,12 @@ button:hover .calender-year {
 .full-body {
   display: grid;
   grid-template-rows: 6% 8% 1.3fr 30%;
-  margin-left: auto;
-  width: calc(100vw - 20%);
-  height: 100vh;
+  height: 100%;
   padding-left: 5px;
+}
+
+.full-body > * {
+  margin-right: 10px;
 }
 
 #header {
@@ -694,11 +706,7 @@ button:hover .calender-year {
 .side-nav-container-whiteTheme {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 20%;
-  position: fixed;
-  top: 0;
-  left: 0;
+  height: 100%;
   overflow-x: hidden;
   color: #f8f9fa;
 }
@@ -897,7 +905,6 @@ button:hover .calender-year {
   font-size: 1.2em;
   border: none;
 }
-
 
 .calender-year {
   margin-left: 5px;
@@ -1237,7 +1244,20 @@ input::placeholder {
 
 /* css for lower sreens */
 
-@media (min-width: 768px) {
+@media (max-width: 980px) {
+  .dashboard-body-whiteTheme {
+    font-family: "Roboto", sans-serif;
+    height: 100svh;
+    width: 100svw;
+    grid-template-columns: 10% 90%;
+  }
+  .dashboard-body-blackTheme {
+    font-family: "Roboto", sans-serif;
+    height: 100svh;
+    width: 100svw;
+    grid-template-columns: 10% 90%;
+  }
+
   .footer {
     flex-direction: column;
   }

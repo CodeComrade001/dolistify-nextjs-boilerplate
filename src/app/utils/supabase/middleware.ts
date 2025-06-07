@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -26,9 +27,19 @@ export async function updateSession(request: NextRequest) {
       },
     }
   )
+  try {
 
-  // refreshing the auth token
-  await supabase.auth.getUser()
+    // refreshing the auth token
+    const { data } = await supabase.auth.getUser()
 
-  return supabaseResponse
+    if (data.user == null) {
+      return { success: false, message: 'Not authenticated' }
+    }
+
+    return { success: true, message: 'Authenticated' }
+  } catch (err) {
+     console.error('updateSession error', err)
+    // On error, you might choose to let them through or kick them out.
+    return { success: false, message: 'Session check failed' }
+  }
 }
