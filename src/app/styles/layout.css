@@ -898,8 +898,6 @@ button:hover .calender-year {
   border: none;
 }
 
-.fulldate > input:focus {
-}
 
 .calender-year {
   margin-left: 5px;

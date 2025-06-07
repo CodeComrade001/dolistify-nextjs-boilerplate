@@ -18,7 +18,7 @@ export async function DELETE() {
     }
     revalidatePath('/', 'layout')
     return NextResponse.redirect('/')
-  } catch (error: unknown) {
+  } catch  {
     return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
   }
 }

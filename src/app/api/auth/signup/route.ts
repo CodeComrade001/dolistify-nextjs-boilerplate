@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { userName, email, password } = await request.json();
+    const {  email, password } = await request.json();
 
     const supabase = await createClient()
     // type-casting here for convenience
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     revalidatePath('/', 'layout')
     // On success, send user to Dashboard
      return NextResponse.json({ success: true });
-  } catch (error: unknown) {
+  } catch  {
      return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
   }
 }

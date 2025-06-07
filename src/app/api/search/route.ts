@@ -17,8 +17,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: dataFormat });
     }
 
-  } catch (error: unknown) {
-    return NextResponse.json({ success: false, error: error });
+  } catch  {
+    return NextResponse.json({ success: false, error: "server error" });
   }
 }
 
