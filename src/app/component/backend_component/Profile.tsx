@@ -9,10 +9,11 @@ export default async function GetUserDetails() {
     const supabase = await createClient();
 
     // Fetch exactly one user by ID
-    const { data, error } = await supabase
-      .from("profiles")
+    const { data , error } = await supabase
+       .from("profiles")
       .select("username,user_email, avatar_url")
       .single();
+      
 
     if (error) {
       console.error("GetUserDetails supabase error:", error);

@@ -14,6 +14,7 @@ export default function ProfileDetails() {
       async function getUserDetails() {
          try {
             const userFetchedDetails = await GetUserDetails();
+            console.log("🚀 ~ getUserDetails ~ userFetchedDetails:", userFetchedDetails)
             if (userFetchedDetails) {
                setUserDetails({
                   username: userFetchedDetails.username,
