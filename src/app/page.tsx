@@ -79,7 +79,6 @@ export default function HomePage() {
     try {
       // Validate the form data using your Zod schema.
       SignupFormSchema.parse({
-        name: userName,
         email: email,
         password: password,
       });
@@ -89,7 +88,7 @@ export default function HomePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userName, email, password }),
+        body: JSON.stringify({  email, password }),
       });
       const data = await response.json();
       if (data.success) {
