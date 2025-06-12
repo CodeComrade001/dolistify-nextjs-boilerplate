@@ -14,11 +14,12 @@ export async function DELETE() {
       // Sign out the user
       const { error } = await supabase.auth.signOut();
       if (error) {
-        return NextResponse.json({ error: "error logging out" });
+        return NextResponse.json({success: false, error: "error logging out" });
       }
-      return NextResponse.json({ message: 'Signed out successfully' });
+
+      return NextResponse.json({ success: true, message: 'Signed out successfully' });
     } else {
-      return NextResponse.json({ message: 'User not logged in' });
+      return NextResponse.json({success: false, message: 'User not logged in' });
     }
   } catch {
     return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
