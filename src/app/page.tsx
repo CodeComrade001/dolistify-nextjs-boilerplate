@@ -69,7 +69,7 @@ export default function HomePage() {
   }
 
   async function handleSignUpBtn() {
-    const { userName, email, password, password0 } = userSignUpDetails;
+      const { email, password, password0 } = userSignUpDetails;
     
     if (password !== password0) {
       return;

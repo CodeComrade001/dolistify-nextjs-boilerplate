@@ -13,7 +13,6 @@ export default async function GetUserDetails() {
        .from("profiles")
       .select("username,user_email, avatar_url")
       .single();
-      
 
     if (error) {
       console.error("GetUserDetails supabase error:", error);
