@@ -22,6 +22,8 @@ interface signUpDetails {
 export default function HomePage() {
   const [accessType, setAccessType] = useState<"Sign in" | "Sign up">("Sign in");
   const [animationMovement, setAnimationMovement] = useState("")
+  const [signUpText, setSignUpText] = useState("Create Account")
+  const [signInText, setSignInText] = useState("Log In Now")
   const [userSignInDetails, setUserSignInDetails] = useState<signInDetails>({
     userName: "",
     password: "",
@@ -67,11 +69,13 @@ export default function HomePage() {
   }
 
   async function handleSignUpBtn() {
+
     const { email, password, password0 } = userSignUpDetails;
 
     if (password !== password0) {
       return;
     }
+    setSignUpText("Loading...")
 
     try {
       // Validate the form data using your Zod schema.
@@ -85,7 +89,7 @@ export default function HomePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({  email, password },
       });
       const data = await response.json();
       if (data.success) {
@@ -97,6 +101,8 @@ export default function HomePage() {
       // If the data is invalid, Zod will throw an error which you can catch.
       if (error instanceof z.ZodError) {
         setFormErrors(error.flatten().fieldErrors);
+      } else {
+        setSignUpText("Failed")
       }
     }
   }
@@ -107,6 +113,7 @@ export default function HomePage() {
       const { userName, password } = userSignInDetails;
       if (userName !== "" && password !== "") {
 
+        setSignInText('Loading...')
         const response = await fetch("/api/auth/signin", {
           method: "POST",
           headers: {
@@ -118,11 +125,14 @@ export default function HomePage() {
         if (data.success) {
           router.push("/Dashboard");
         } else {
+          setSignInText("Incorrect Details")
           return
         }
       }
+      setSignInText("Incorrect Details")
       // You could similarly implement sign-in logic here
     } catch {
+      setSignInText("Incorrect Details")
       return
     }
   }
@@ -225,7 +235,7 @@ export default function HomePage() {
                       }}
                       type="submit"
                     >
-                      <span className={LoginStyles.button__text}>Create Account</span>
+                      <span className={LoginStyles.button__text}>{signUpText}</span>
                       <i className={`${LoginStyles.button__icon} fas fa-chevron-right`}></i>
                     </button>
                     <div className={`${accessType === "Sign up" ? LoginStyles.sign_up_social_login : LoginStyles.social_login}`}>
@@ -274,7 +284,7 @@ export default function HomePage() {
                         handleSignInBtn();
                       }}
                     >
-                      <span className={LoginStyles.button__text}>Log In Now</span>
+                      <span className={LoginStyles.button__text}>{signInText}</span>
                       <i className={`${LoginStyles.button__icon} fas fa-chevron-right`}></i>
                     </button>
                     <div className={LoginStyles.social_login}>
