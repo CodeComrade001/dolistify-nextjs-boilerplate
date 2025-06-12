@@ -129,6 +129,7 @@ export default function HomePage() {
         if (data.success) {
           setSignInText("Success")
           router.push("/Dashboard");
+          return
         } else {
           setSignInText("Invalid Details")
           return
