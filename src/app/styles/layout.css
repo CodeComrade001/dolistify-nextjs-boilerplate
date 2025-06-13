@@ -712,14 +712,9 @@ button:hover .calender-year {
 }
 
 .side-nav-container-blackTheme {
-  display: flex;
+    display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 20%;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
+  height: 100%;
   overflow-x: hidden;
   color: #f8f9fa;
 }
