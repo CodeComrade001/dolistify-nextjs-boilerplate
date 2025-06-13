@@ -172,3 +172,10 @@
 .deactivate_btn {
   display: none;
 }
+
+@media (max-width: 980px) {
+  .task_date,
+  .task_title {
+    font-size: 1em;
+  }
+}

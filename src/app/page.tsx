@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState } from "react";
 import LoginStyles from "./styles/logIn.module.css";
@@ -69,8 +70,9 @@ export default function HomePage() {
   }
 
   async function handleSignUpBtn() {
-      const { email, password, password0 } = userSignUpDetails;
-    
+
+    const { email, password, password0 } = userSignUpDetails;
+
     if (password !== password0) {
       return;
     }
@@ -92,16 +94,20 @@ export default function HomePage() {
       });
       const data = await response.json();
       if (data.success) {
+        setSignUpText("Success")
         router.push("/Dashboard");
+        return
       } else {
+        setSignUpText("Invalid Details")
         return
       }
+      setSignUpText("Invalid Details")
     } catch (error) {
       // If the data is invalid, Zod will throw an error which you can catch.
       if (error instanceof z.ZodError) {
         setFormErrors(error.flatten().fieldErrors);
       } else {
-        setSignUpText("Failed")
+        setSignUpText("Invalid Details")
       }
     }
   }
@@ -122,16 +128,18 @@ export default function HomePage() {
         });
         const data = await response.json();
         if (data.success) {
+          setSignInText("Success")
           router.push("/Dashboard");
+          return
         } else {
-          setSignInText("Incorrect Details")
+          setSignInText("Invalid Details")
           return
         }
       }
-      setSignInText("Incorrect Details")
+      setSignInText("Invalid Details")
       // You could similarly implement sign-in logic here
     } catch {
-      setSignInText("Incorrect Details")
+      setSignInText("Invalid Details")
       return
     }
   }

@@ -182,3 +182,25 @@
   padding: 10px;
   height: fit-content;
 }
+
+@media (max-width: 900px) {
+  .hint_container {
+    display: none;
+  }
+  .weekly_bar_chart {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 50% 50%;
+  }
+  .pieChart_diagram {
+    flex: 1 1;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pieChart_view {
+    width: 50%;
+  }
+}
