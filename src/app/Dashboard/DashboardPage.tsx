@@ -31,6 +31,7 @@ export default function DashboardPage({
   const [activeDashboardBtn, setActiveDashboardBtn] = useState<"personal" | "work" | "time_bound" | "completed" | "missed" | "repeated">("personal");
   // const [showNotification, setShowNotification] = useState<boolean>(false)
   const [activeDashboardBtnRoute, setActiveDashboardBtnRoute] = useState("high_priority");
+  const [dashboardBtnRoute, setDashboardBtnRoute] = useState("High riority");
   const router = useRouter()
   // const [notificationCount, setNotificationCount] = useState<number>(0)
   const [results, setResults] = useState<[{ id: string, title: string }]>([{ id: "", title: "" }]);
@@ -731,43 +732,39 @@ export default function DashboardPage({
 
         <section className="sub-header-container">
           <div className="sub-header">
-            <div className="first-sub-header">
-              <div className="route-headlings">
-                <div className="route-headlings-item">
-                  <p>PERSONAL ⫸ All Task</p>
-                  <button>Daily</button>
-                </div>
-              </div>
-              <div className="sub-routes">
-                <div className="sub-routes-nav">
-                  {dashboardRouteOptionsQuery.routeOptions.map((name, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        const activeRoute = dashboardRouteOptionsQuery.activeRouteOptions[index]; // Get corresponding activeRouteOption
-                        setActiveDashboardBtnRoute(activeRoute); // Updates the active route
-                        handleClick(activeDashboardBtn, activeRoute); // Passes the correct active button and active route
-                      }}
-                      className={activeDashboardBtnRoute === dashboardRouteOptionsQuery.activeRouteOptions[index] ? "activeBtn" : ""}
-                    >
-                      {name}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push("/Add_New_Task")
-                    }}
-                  >
-                    New Task
-                  </button>
-                </div>
+            <div className="route-headlings">
+              <div className="route-headlings-item">
+                <p>{dashboardBtnType} ⫸ {dashboardBtnRoute}</p>
+                <button>Daily</button>
               </div>
             </div>
-            <div className="second-sub-header">
-              <div className="other-options">
+            <div className="sub-routes">
+              <div className="sub-routes-nav">
+                {dashboardRouteOptionsQuery.routeOptions.map((name, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
 
+                      const activeRouteText = dashboardRouteOptionsQuery.routeOptions[index]; // Get corresponding activeRouteOption
+                      const activeRoute = dashboardRouteOptionsQuery.activeRouteOptions[index]; // Get corresponding activeRouteOption
+                      setDashboardBtnRoute(activeRouteText)
+                      setActiveDashboardBtnRoute(activeRoute); // Updates the active route
+                      handleClick(activeDashboardBtn, activeRoute); // Passes the correct active button and active route
+                    }}
+                    className={activeDashboardBtnRoute === dashboardRouteOptionsQuery.activeRouteOptions[index] ? "activeBtn" : ""}
+                  >
+                    {name}
+                  </button>
+                ))}
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push("/Add_New_Task")
+                  }}
+                >
+                  New Task
+                </button>
               </div>
             </div>
           </div>

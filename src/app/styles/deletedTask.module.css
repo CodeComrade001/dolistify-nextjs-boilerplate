@@ -208,3 +208,23 @@
   height: 15px;
   width: 15px;
 }
+
+@media (max-width: 900px) {
+  .deleted_items_header {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .welcome_message {
+    grid-column: span 2;
+    font-size:1.5em;
+  }
+
+  .dashboard_group_item {
+    width: 130px;
+  }
+}
