@@ -1,4 +1,10 @@
-@import url("https://fonts.googleapis.com/css?family=Raleway:400,700");
+@import url("https://fonts.googleapis.com/css2?family=Bungee+Tint&family=Inria+Sans:ital,wght@0,400;0,700;1,300;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poetsen+One&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+/* TARGETING ALL BUTTON ELEMENT */
+.root_body * {
+  font-family: "Poetsen One", sans-serif !important;
+  font-weight: 100 !important;
+  font-style: normal !important;
+}
 
 @keyframes highlightColor {
   0% {
@@ -20,14 +26,28 @@
 
 .root_body {
   background: linear-gradient(#2da8a8, #38d2d2);
-  font-family: Raleway, sans-serif;
   background-size: 200% 200%;
   animation: highlightColor 5s infinite alternate;
   overflow-y: hidden;
-  height: 100vh;
-  width: 100vw;
+  height: 100lvh;
+  width: 100lvw;
   margin: 0;
   padding: 0;
+  position: relative;
+}
+
+.helper_guide {
+  position: absolute;
+  right: 0;
+  background-color:inherit;
+  top: 12px;
+  z-index: 5;
+  height: fit-content;
+  width: 60%;
+  background-color: whitesmoke;
+  margin: 0 auto;
+  left: 0;
+  border-radius: 15px;
 }
 
 .container {

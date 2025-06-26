@@ -22,15 +22,30 @@ export default function TaskDisplay({
    dashboardBtn,
    dashboardRoute,
    sendingTaskPreviewPath,
+   sendNotificationToMessageComponent,
 }: {
    dashboardBtn: string;
    dashboardRoute: string;
    sendingTaskPreviewPath: (sentTaskId: string, sentDashboardBtn: string) => void;
+   sendNotificationToMessageComponent: (message: string, messageType: string) => void;
 }) {
    const [tasks, setTasks] = useState<TaskQueryResult[]>([]);
    const [taskStyle, setTaskStyle] = useState<{ [key: string]: React.CSSProperties }>({});
    const [isStylesReady, setIsStylesReady] = useState(false);
    const [userFullTask, setUserFullTask] = useState<savedTaskDataType | null>(null)
+   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false)
+   const [notificationMessage, setNotificationMessage] = useState<{ message: string, messageType: string }>({
+      message: "",
+      messageType: ""
+   })
+   const [loadingButtonId, setLoadingButtonId] = useState<string | null>(null);
+
+
+   const sendNotificationMessage = useCallback(() => {
+      const { message, messageType } = notificationMessage;
+      if (message == "" || messageType == "") return;
+      sendNotificationToMessageComponent(message, messageType)
+   }, [notificationMessage, sendNotificationToMessageComponent])
 
    const setTaskPlacement = useCallback(async (id: number): Promise<React.CSSProperties> => {
       try {
@@ -41,6 +56,7 @@ export default function TaskDisplay({
          const item = taskPositionArray.find((pos) => pos.id === id);
          return item ? { gridRowStart: item.row, gridColumnStart: item.column } : {};
       } catch {
+
          return {};
       }
    }, [dashboardBtn, dashboardRoute])
@@ -66,17 +82,24 @@ export default function TaskDisplay({
    }, [setTaskPlacement]);
 
    const handleTaskUpdate = async (taskId: string, condition: "deleted" | "missed" | "completed") => {
-      try {
-         // First, fetch the full task details
-         const userFullTaskFetching = await fetchFullTask(taskId, dashboardBtn, dashboardRoute);
+      setLoadingButtonId(taskId + condition);
+      setIsButtonLoading(true)
 
-         if (userFullTaskFetching !== null && userFullTask !== null) {
-            // Optionally update state if needed:
-            // Then update the task condition using the fetched details
-            await setTaskCondition(taskId, dashboardBtn, dashboardRoute, condition, userFullTask);
-         } else {
+      // First, fetch the full task details
+      const userFullTaskFetching = await fetchFullTask(taskId, dashboardBtn, dashboardRoute);
+
+      if (userFullTaskFetching !== null && userFullTask !== null) {
+         // Optionally update state if needed:
+         // Then update the task condition using the fetched details
+         const result = await setTaskCondition(taskId, dashboardBtn, dashboardRoute, condition, userFullTask);
+         if (result) {
+            setNotificationMessage({ message: "Task has Been Updated", messageType: "success" })
          }
-      } catch {
+         setIsButtonLoading(false)
+      } else {
+         setNotificationMessage({ message: "Server Error:Task has Been Updated", messageType: "success" })
+         sendNotificationMessage()
+         setIsButtonLoading(false)
       }
    };
 
@@ -85,6 +108,7 @@ export default function TaskDisplay({
          const result = await showSavedTaskDetailView(taskId, dashboardBtn, dashboardRoute);
 
          if (result == null) {
+            setNotificationMessage({ message: "Task does not exist", messageType: "alert" })
             return null;
          }
          setUserFullTask(result)
@@ -147,6 +171,8 @@ export default function TaskDisplay({
    }
 
 
+
+
    function sendTaskPreviewQuery(sentTaskId: string, sentDashboardBtn: string) {
       sendingTaskPreviewPath(sentTaskId, sentDashboardBtn)
    }
@@ -186,6 +212,7 @@ export default function TaskDisplay({
                         <div className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn_option_container : taskDisplay.options_container}`}>
                            <div className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.main_button_container : taskDisplay.top_row}`}>
                               <button
+                                 disabled={isButtonLoading}
                                  title="View Task"
                                  className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.only_active_btn : taskDisplay.task_options}`}
                               >
@@ -205,8 +232,9 @@ export default function TaskDisplay({
                                  </Link>
                               </button>
                               <button
+                                 disabled={isButtonLoading}
                                  title="complete Task"
-                                 className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
+                                 className={`${loadingButtonId === task.id + "completed" ? "button_loading_icon" : ""}  ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
                                  onClick={() => handleTaskUpdate(task.id, "completed")}
                               >
                                  <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
@@ -218,23 +246,25 @@ export default function TaskDisplay({
                                  </svg>
                               </button>
                            </div>
-                           <div className={`${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_bottom_row : taskDisplay.bottom_row}`}>
+                           <div className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_bottom_row : taskDisplay.bottom_row}`}>
                               <button
+                                 disabled={isButtonLoading}
                                  title="failed Task"
-                                 className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
+                                 className={`${loadingButtonId === task.id + "missed" ? "button_loading_icon" : ""} ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
                                  onClick={() => handleTaskUpdate(task.id, "missed")}
-                              >
+                              >{!isButtonLoading && 
                                  <svg fill="white" viewBox="0 -8 528 528" xmlns="http://www.w3.org/2000/svg">
                                     <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                     <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                                     <g id="SVGRepo_iconCarrier">
                                        <path d="M264 456Q210 456 164 429 118 402 91 356 64 310 64 256 64 202 91 156 118 110 164 83 210 56 264 56 318 56 364 83 410 110 437 156 464 202 464 256 464 310 437 356 410 402 364 429 318 456 264 456ZM264 288L328 352 360 320 296 256 360 192 328 160 264 224 200 160 168 192 232 256 168 320 200 352 264 288Z">
                                        </path>
-                                    </g></svg>
+                                    </g></svg>}
                               </button>
                               <button
+                                 disabled={isButtonLoading}
                                  title="delete Task"
-                                 className={` ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
+                                 className={`${loadingButtonId === task.id + "deleted" ? "button_loading_icon" : ""} ${(dashboardRoute === "completed" || dashboardRoute === "missed") ? taskDisplay.deactivate_btn : taskDisplay.task_options}`}
                                  onClick={() => handleTaskUpdate(task.id, "deleted")}
                               >
                                  <svg fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
