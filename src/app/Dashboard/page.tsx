@@ -16,13 +16,22 @@ export default function DashboardHomePage() {
       taskId: null,
       dashboardBtn: ""
    });
+   const [notificationMessage, setNotificationMessage] = useState<{ message: string | null, messageType: string | null }>({
+      message: null,
+      messageType: null
+   })
 
+   function sendToMessageComponent(message: string, messageType: string) {
+      if (message == null || messageType == null) return;
+      setNotificationMessage({ message, messageType })
+
+   }
 
    function sendTaskQueryPath(dashboardBtn: string, dashboardRoute: string) {
       setTaskQueryPath({ dashboardBtn, dashboardRoute });
    }
 
-   function showSearchFullResult(taskId:string, btn: string) {
+   function showSearchFullResult(taskId: string, btn: string) {
       if (taskId !== null) {
          setFullTaskPreviewProps({ taskId, dashboardBtn: btn });
       }
@@ -33,6 +42,7 @@ export default function DashboardHomePage() {
       profileDetails: <ProfileDetails />,
       userTask: (
          <TaskDisplay
+            sendNotificationToMessageComponent={sendToMessageComponent}
             sendingTaskPreviewPath={showSearchFullResult}
             dashboardBtn={taskQueryPath.dashboardBtn}
             dashboardRoute={taskQueryPath.dashboardRoute}
@@ -40,7 +50,10 @@ export default function DashboardHomePage() {
       ),
       userDeletedFiles: <DeletedTask />,
       weeklyData: <WeeklyBarChart dashboardBtn={taskQueryPath.dashboardBtn} />,
-      helperViewTab: <HelperBar />,
+      helperViewTab: <HelperBar
+         directlySentMessage={notificationMessage.message ?? undefined}
+         directSentMessageCategory={notificationMessage.messageType ?? undefined}
+      />,
       userFullTaskDetailsPreview: (
          <ShowSavedTaskPreview
             taskId={fullTaskPreviewProps.taskId!}

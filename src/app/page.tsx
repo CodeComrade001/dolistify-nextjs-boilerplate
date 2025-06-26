@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SignupFormSchema } from "./lib/definition";
 import { z } from "zod";
+import HelperBar from "./component/reusable_component/helper_screen";
 
 
 interface signInDetails {
@@ -41,6 +42,9 @@ export default function HomePage() {
     email?: string[];
     password?: string[];
   } | null>(null);
+  const [errorSolutionMap, setErrorSolutionMap] = useState<{
+    [key: number]: { error: string; solution: string; errorType: string };
+  }>({});
 
   function handleAccessBtn(direction: string, UserAccessType: string) {
     setAccessType(UserAccessType as "Sign in" | "Sign up")
@@ -71,12 +75,16 @@ export default function HomePage() {
 
   async function handleSignUpBtn() {
 
+    setSignUpText("Loading...")
     const { email, password, password0 } = userSignUpDetails;
 
     if (password !== password0) {
-      return;
+      addErrorSolution("password does not match", "PassWord must be Be the same", "error")
+      setSignUpText("Error Creating user")
+      return
+
     }
-    setSignUpText("Loading...")
+
 
     try {
       // Validate the form data using your Zod schema.
@@ -90,24 +98,26 @@ export default function HomePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({  email, password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
       if (data.success) {
         setSignUpText("Success")
+        addErrorSolution("successfully", "", "success")
         router.push("/Dashboard");
         return
       } else {
+        addErrorSolution("Invalid Details", "please enter the correct details", "error")
         setSignUpText("Invalid Details")
         return
       }
-      setSignUpText("Invalid Details")
     } catch (error) {
       // If the data is invalid, Zod will throw an error which you can catch.
       if (error instanceof z.ZodError) {
         setFormErrors(error.flatten().fieldErrors);
       } else {
-        setSignUpText("Invalid Details")
+        addErrorSolution("Server Error:Error Creating user", "This is a server error", "alert")
+        setSignUpText("Server Error:Error Creating user ")
       }
     }
   }
@@ -132,21 +142,64 @@ export default function HomePage() {
           router.push("/Dashboard");
           return
         } else {
+          addErrorSolution("Invalid Details ", "Email or Password is not correct", "error")
           setSignInText("Invalid Details")
           return
         }
       }
-      setSignInText("Invalid Details")
+
+      addErrorSolution("Error Logging In ", "Email or Password is empty", "error")
+      setSignInText("Empty Input")
       // You could similarly implement sign-in logic here
-    } catch {
-      setSignInText("Invalid Details")
+    } catch (error) {
+      console.log("🚀 ~ handleSignInBtn ~ error:", error)
+      addErrorSolution("Error Logging In ", "Email or Password is incorrect", "alert")
+      setSignInText("Server Error")
       return
     }
+  }
+
+  const addErrorSolution = (error: string, solution: string, errorType: string) => {
+    setErrorSolutionMap((prev) => {
+      const index = Object.keys(prev).length; // Use next available index.
+      const updatedMap = { ...prev, [index]: { error, solution, errorType } };
+
+      // Automatically remove this error–solution after 3 minutes (180000 ms)
+      setTimeout(() => {
+        setErrorSolutionMap((current) => {
+          const next = { ...current };
+          delete next[index];
+          return next;
+        });
+      }, 180000);
+
+      return updatedMap;
+    });
   }
 
 
   return (
     <div className={LoginStyles.root_body}>
+      <div className={LoginStyles.helper_guide}>
+        {Object.keys(errorSolutionMap).map((key) => (
+          <div key={key}>
+            <div className={LoginStyles.helper_guide_error}>
+              <HelperBar
+                directlySentMessage={errorSolutionMap[Number(key)].error}
+                directSentMessageCategory={errorSolutionMap[Number(key)].errorType}
+              />
+            </div>
+            <div className={LoginStyles.helper_guide_solution}>
+              <HelperBar
+                directlySentMessage={errorSolutionMap[Number(key)].solution}
+                directSentMessageCategory={'message'}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+
       <div className={LoginStyles.container}>
         <div className={LoginStyles.screen}>
           <div className={LoginStyles.screen__content}>
@@ -177,6 +230,7 @@ export default function HomePage() {
                     <div className={LoginStyles.login__field}>
                       <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
                       <input
+                        required
                         type="text"
                         name={userSignUpDetails.userName}
                         className={LoginStyles.login__input}
@@ -185,12 +239,15 @@ export default function HomePage() {
                       />
                     </div>
                     {formErrors?.name &&
-                      formErrors?.name.map((err, idx) => (
-                        <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
-                      ))}
+                      formErrors?.name.map((err, idx) => {
+                        addErrorSolution(err, "UserName must be Uppercase,lowerCase and have number", "error")
+                        return (
+                          <p key={`userName-error-${idx}`} className={LoginStyles.errorText}>{err}</p>)
+                      })}
                     <div className={LoginStyles.login__field}>
                       <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
                       <input
+                        required
                         type="text"
                         name={userSignUpDetails.email}
                         className={LoginStyles.login__input}
@@ -199,12 +256,16 @@ export default function HomePage() {
                       />
                     </div>
                     {formErrors?.email &&
-                      formErrors?.email.map((err, idx) => (
-                        <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}</p>
-                      ))}
+                      formErrors?.email.map((err, idx) => {
+                        addErrorSolution(err, "Email is not in the required format", "error")
+                        return (
+                          <p key={`email-error-${idx}`} className={LoginStyles.errorText}>{err}
+                          </p>)
+                      })}
                     <div className={LoginStyles.login__field}>
                       <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
                       <input
+                        required
                         type="password"
                         name={userSignUpDetails.password}
                         className={LoginStyles.login__input}
@@ -216,17 +277,20 @@ export default function HomePage() {
                       <div className={LoginStyles.error_list}>
                         <p>Password must:</p>
                         <ul>
-                          {formErrors?.password.map((error, idx) => (
-                            <li key={idx} className={LoginStyles.error_item}>
-                              {error}
-                            </li>
-                          ))}
+                          {formErrors?.password.map((error, idx) => {
+                            addErrorSolution(error, "PassWord must be Alpha Numeric", "error")
+                            return (
+                              <li key={idx} className={LoginStyles.error_item}>
+                                {error}
+                              </li>)
+                          })}
                         </ul>
                       </div>
                     )}
                     <div className={LoginStyles.login__field}>
                       <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
                       <input
+                        required
                         type="password"
                         name={userSignUpDetails.password0}
                         className={LoginStyles.login__input}
@@ -267,6 +331,7 @@ export default function HomePage() {
                     <div className={LoginStyles.login__field}>
                       <i className={`${LoginStyles.login__icon} fas fa-user`}></i>
                       <input
+                        required
                         type="text"
                         name={userSignInDetails.userName}
                         className={LoginStyles.login__input}
@@ -277,6 +342,7 @@ export default function HomePage() {
                     <div className={LoginStyles.login__field}>
                       <i className={`${LoginStyles.login__icon} fas fa-lock`}></i>
                       <input
+                        required
                         type="password"
                         name={userSignInDetails.password}
                         className={LoginStyles.login__input}

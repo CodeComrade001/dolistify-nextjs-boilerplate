@@ -82,6 +82,7 @@
   background-color: whitesmoke;
   margin: 0 auto;
   left: 0;
+  border-radius:15px;
 }
 
 .container_items {
