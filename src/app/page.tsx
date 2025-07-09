@@ -103,12 +103,12 @@ export default function HomePage() {
       const data = await response.json();
       if (data.success) {
         setSignUpText("Success")
-        addErrorSolution("successfully", "", "success")
+        addErrorSolution("Account Created Successfully", "", "success")
         router.push("/Dashboard");
         return
       } else {
-        addErrorSolution("Invalid Details", "please enter the correct details", "error")
-        setSignUpText("Invalid Details")
+        addErrorSolution("Account Creation Failed", "This is a server error", "error")
+        setSignUpText("Account Creation Failed")
         return
       }
     } catch (error) {
@@ -139,6 +139,7 @@ export default function HomePage() {
         const data = await response.json();
         if (data.success) {
           setSignInText("Success")
+          addErrorSolution("Successfully Log In", "", "Success")
           router.push("/Dashboard");
           return
         } else {
@@ -151,9 +152,8 @@ export default function HomePage() {
       addErrorSolution("Error Logging In ", "Email or Password is empty", "error")
       setSignInText("Empty Input")
       // You could similarly implement sign-in logic here
-    } catch (error) {
-      console.log("🚀 ~ handleSignInBtn ~ error:", error)
-      addErrorSolution("Error Logging In ", "Email or Password is incorrect", "alert")
+    } catch {
+      addErrorSolution("Error Logging In ", "Don't fret  thsi is a server error", "alert")
       setSignInText("Server Error")
       return
     }
@@ -171,7 +171,7 @@ export default function HomePage() {
           delete next[index];
           return next;
         });
-      }, 180000);
+      }, 3000);
 
       return updatedMap;
     });
@@ -190,10 +190,13 @@ export default function HomePage() {
               />
             </div>
             <div className={LoginStyles.helper_guide_solution}>
-              <HelperBar
-                directlySentMessage={errorSolutionMap[Number(key)].solution}
-                directSentMessageCategory={'message'}
-              />
+              {
+                errorSolutionMap[Number(key)].solution !== "" &&
+                <HelperBar
+                  directlySentMessage={errorSolutionMap[Number(key)].solution}
+                  directSentMessageCategory={'message'}
+                />
+              }
             </div>
           </div>
         ))}
